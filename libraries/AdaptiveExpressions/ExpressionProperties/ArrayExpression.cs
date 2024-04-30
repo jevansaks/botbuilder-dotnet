@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -61,8 +61,8 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="ArrayExpression{T}"/> class.
         /// </summary>
-        /// <param name="expressionOrValue">JToken which is either a collection of (T) or expression which evaluates to array.</param>
-        public ArrayExpression(JToken expressionOrValue)
+        /// <param name="expressionOrValue">JsonNode which is either a collection of (T) or expression which evaluates to array.</param>
+        public ArrayExpression(JsonNode expressionOrValue)
             : base(expressionOrValue)
         {
         }
@@ -96,7 +96,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to ArrayExpression.
         /// </summary>
         /// <param name="expressionOrValue">The JSON Token to Convert.</param>
-        public static implicit operator ArrayExpression<T>(JToken expressionOrValue) => new ArrayExpression<T>(expressionOrValue);
+        public static implicit operator ArrayExpression<T>(JsonNode expressionOrValue) => new ArrayExpression<T>(expressionOrValue);
 #pragma warning restore CA2225 // Operator overloads have named alternates
     }
 }

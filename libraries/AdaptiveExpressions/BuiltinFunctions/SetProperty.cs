@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -23,8 +23,8 @@ namespace AdaptiveExpressions.BuiltinFunctions
         {
             return FunctionUtils.Apply(args =>
             {
-                var newJobj = (IDictionary<string, JToken>)args[0];
-                newJobj[args[1].ToString()] = FunctionUtils.ConvertToJToken(args[2]);
+                var newJobj = (IDictionary<string, JsonNode>)args[0];
+                newJobj[args[1].ToString()] = FunctionUtils.ConvertToJsonNode(args[2]);
                 return newJobj;
             });
         }

@@ -3,8 +3,8 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.Json.Nodes;
 using AdaptiveExpressions.Memory;
-using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -52,12 +52,12 @@ namespace AdaptiveExpressions.BuiltinFunctions
                     if (!FunctionUtils.TryParseList(instance, out IList _))
                     {
                         // re-construct object
-                        var jobjResult = new JObject();
+                        var jobjResult = new JsonObject();
                         foreach (var item in (List<object>)result)
                         {
                             FunctionUtils.TryAccessProperty(item, "key", out var keyVal);
                             FunctionUtils.TryAccessProperty(item, "value", out var val);
-                            jobjResult.Add(keyVal as string, FunctionUtils.ConvertToJToken(val));
+                            jobjResult.Add(keyVal as string, FunctionUtils.ConvertToJsonNode(val));
                         }
 
                         result = jobjResult;

@@ -4,7 +4,7 @@
 using System;
 using System.Globalization;
 using System.Threading;
-using Newtonsoft.Json;
+
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {

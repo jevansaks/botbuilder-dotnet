@@ -2,9 +2,8 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Text.Json.Nodes;
 using AdaptiveExpressions.Converters;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -12,7 +11,6 @@ namespace AdaptiveExpressions.Properties
     /// IntExpression - represents a property which is either an Integer or a string expression which resolves to a Integer.
     /// </summary>
     /// <remarks>String values are always interpreted as an expression, whether it has '=' prefix or not.</remarks>
-    [JsonConverter(typeof(IntExpressionConverter))]
     public class IntExpression : ExpressionProperty<int>
     {
         /// <summary>
@@ -61,8 +59,8 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="IntExpression"/> class.
         /// </summary>
-        /// <param name="expressionOrValue">JToken to resolve to an int.</param>
-        public IntExpression(JToken expressionOrValue)
+        /// <param name="expressionOrValue">JsonNode to resolve to an int.</param>
+        public IntExpression(JsonNode expressionOrValue)
             : base(expressionOrValue)
         {
         }
@@ -90,7 +88,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to an IntExpression instance.
         /// </summary>
         /// <param name="expressionOrValue">The JSON Token to convert.</param>
-        public static implicit operator IntExpression(JToken expressionOrValue) => new IntExpression(expressionOrValue);
+        public static implicit operator IntExpression(JsonNode expressionOrValue) => new IntExpression(expressionOrValue);
 #pragma warning restore CA2225 // Operator overloads have named alternates
     }
 }

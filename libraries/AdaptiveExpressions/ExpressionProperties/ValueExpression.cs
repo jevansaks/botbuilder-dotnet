@@ -3,8 +3,8 @@
 
 using System;
 using AdaptiveExpressions.Converters;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -99,7 +99,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to a ValueExpression instance.
         /// </summary>
         /// <param name="valueOrExpression">The JSON Token to convert.</param>
-        public static implicit operator ValueExpression(JToken valueOrExpression) => new ValueExpression(valueOrExpression);
+        public static implicit operator ValueExpression(JsonNode valueOrExpression) => new ValueExpression(valueOrExpression);
 
         /// <summary>
         /// Converts an Expression instance to a ValueExpression instance.
@@ -114,7 +114,7 @@ namespace AdaptiveExpressions.Properties
         /// <param name="value">Value to set.</param>
         public override void SetValue(object value)
         {
-            var stringOrExpression = (value as string) ?? (value as JValue)?.Value as string;
+            var stringOrExpression = (value as string) ?? (value as JsonValue)?.Value as string;
             this.ExpressionText = null;
             this.Value = null;
 

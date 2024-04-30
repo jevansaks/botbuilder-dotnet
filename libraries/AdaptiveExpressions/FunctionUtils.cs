@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using AdaptiveExpressions.Memory;
 using Microsoft.Recognizers.Text.DataTypes.TimexExpression;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions
 {
@@ -369,7 +369,7 @@ namespace AdaptiveExpressions
         {
             var isList = false;
             list = null;
-            if (!(value is JObject) && value is IList listValue)
+            if (!(value is JsonObject) && value is IList listValue)
             {
                 list = listValue;
                 isList = true;
@@ -798,9 +798,9 @@ namespace AdaptiveExpressions
                     return false;
                 }
 
-                var jObj1 = JObject.FromObject(obj1);
-                var jObj2 = JObject.FromObject(obj2);
-                return JToken.DeepEquals(jObj1, jObj2);
+                var jObj1 = JsonObject.FromObject(obj1);
+                var jObj2 = JsonObject.FromObject(obj2);
+                return JsonNode.DeepEquals(jObj1, jObj2);
             }
 
             // Number Comparison
@@ -884,7 +884,7 @@ namespace AdaptiveExpressions
         }
 
         /// <summary>
-        /// Lookup a property in IDictionary, JObject or through reflection.
+        /// Lookup a property in IDictionary, JsonObject or through reflection.
         /// </summary>
         /// <param name="instance">Instance with property.</param>
         /// <param name="property">Property to lookup.</param>
@@ -915,7 +915,7 @@ namespace AdaptiveExpressions
                         isPresent = true;
                     }
                 }
-                else if (instance is JObject jobj)
+                else if (instance is JsonObject jobj)
                 {
                     value = jobj.GetValue(property, StringComparison.OrdinalIgnoreCase);
                     isPresent = value != null;
@@ -965,33 +965,33 @@ namespace AdaptiveExpressions
         }
 
         /// <summary>
-        /// Convert constant JValue to base type value.
+        /// Convert constant JsonValue to base type value.
         /// </summary>
         /// <param name="obj">Input object.</param>
-        /// <returns>Corresponding base type if input is a JValue.</returns>
+        /// <returns>Corresponding base type if input is a JsonValue.</returns>
         internal static object ResolveValue(object obj)
         {
             object value;
-            if (!(obj is JValue jval))
+            if (!(obj is JsonValue jval))
             {
                 value = obj;
             }
             else
             {
                 value = jval.Value;
-                if (jval.Type == JTokenType.Integer)
+                if (jval.Type == JsonNodeType.Integer)
                 {
                     value = jval.ToObject<long>();
                 }
-                else if (jval.Type == JTokenType.String)
+                else if (jval.Type == JsonNodeType.String)
                 {
                     value = jval.ToObject<string>();
                 }
-                else if (jval.Type == JTokenType.Boolean)
+                else if (jval.Type == JsonNodeType.Boolean)
                 {
                     value = jval.ToObject<bool>();
                 }
-                else if (jval.Type == JTokenType.Float)
+                else if (jval.Type == JsonNodeType.Float)
                 {
                     value = jval.ToObject<double>();
                 }
@@ -1031,14 +1031,14 @@ namespace AdaptiveExpressions
         }
 
         /// <summary>
-        /// Return new object list replace jarray.ToArray&lt;object&gt;().
+        /// Return new object list replace JsonArray.ToArray&lt;object&gt;().
         /// </summary>
         /// <param name="instance">List to resolve.</param>
         /// <returns>Resolved list.</returns>
         internal static IList ResolveListValue(object instance)
         {
             IList result = null;
-            if (instance is JArray ja)
+            if (instance is JsonArray ja)
             {
                 result = (IList)ja.ToObject(typeof(List<object>));
             }
@@ -1144,19 +1144,19 @@ namespace AdaptiveExpressions
             {
                 list = ilist;
             }
-            else if (instance is JObject jobj)
+            else if (instance is JsonObject jobj)
             {
                 list = Object2KVPairList(jobj);
             }
-            else if (ConvertToJToken(instance) is JObject jobject)
+            else if (ConvertToJsonNode(instance) is JsonObject JsonObject)
             {
-                list = Object2KVPairList(jobject);
+                list = Object2KVPairList(JsonObject);
             }
 
             return list;
         }
 
-        internal static List<object> Object2KVPairList(JObject jobj)
+        internal static List<object> Object2KVPairList(JsonObject jobj)
         {
             var tempList = new List<object>();
             foreach (var item in jobj)
@@ -1354,7 +1354,7 @@ namespace AdaptiveExpressions
             {
                 parsed = timex;
             }
-            else if (timexExpr is JObject jTimex)
+            else if (timexExpr is JsonObject jTimex)
             {
                 parsed = jTimex.ToObject<TimexProperty>();
             }
@@ -1381,9 +1381,9 @@ namespace AdaptiveExpressions
             return Encoding.UTF8.GetBytes(strToConvert);
         }
 
-        internal static JToken ConvertToJToken(object value)
+        internal static JsonNode ConvertToJsonNode(object value)
         {
-            return value == null ? JValue.CreateNull() : JToken.FromObject(value);
+            return value == null ? JsonValue.CreateNull() : JsonNode.FromObject(value);
         }
 
         // collection functions
@@ -1413,7 +1413,7 @@ namespace AdaptiveExpressions
                        }
                        else
                        {
-                           var jarray = JArray.FromObject(list.OfType<object>().ToList());
+                           var JsonArray = JsonArray.FromObject(list.OfType<object>().ToList());
                            var propertyNameExpression = expression.Children[1];
                            string propertyName;
                            (propertyName, error) = propertyNameExpression.TryEvaluate<string>(state, options);
@@ -1422,11 +1422,11 @@ namespace AdaptiveExpressions
                                propertyName = propertyName ?? string.Empty;
                                if (isDescending)
                                {
-                                   result = jarray.OrderByDescending(obj => obj[propertyName]).ToList();
+                                   result = JsonArray.OrderByDescending(obj => obj[propertyName]).ToList();
                                }
                                else
                                {
-                                   result = jarray.OrderBy(obj => obj[propertyName]).ToList();
+                                   result = JsonArray.OrderBy(obj => obj[propertyName]).ToList();
                                }
                            }
                        }
@@ -1490,11 +1490,11 @@ namespace AdaptiveExpressions
             {
                 return dictionary.Count;
             }
-            else if (obj is JObject jobj)
+            else if (obj is JsonObject jobj)
             {
                 return jobj.Properties().Count();
             }
-            else if (!(obj is JValue) && obj.GetType().IsValueType == false && obj.GetType().FullName != "System.String")
+            else if (!(obj is JsonValue) && obj.GetType().IsValueType == false && obj.GetType().FullName != "System.String")
             {
                 // exclude constant type.
                 return obj.GetType().GetProperties().Length;

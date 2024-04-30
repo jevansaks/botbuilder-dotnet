@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AdaptiveExpressions.Properties;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Memory
 {
@@ -137,9 +137,9 @@ namespace AdaptiveExpressions.Memory
             {
                 if (FunctionUtils.TryParseList(curScope, out var li))
                 {
-                    if (li is JArray)
+                    if (li is JsonArray)
                     {
-                        value = JToken.FromObject(value);
+                        value = JsonNode.FromObject(value);
                     }
 
                     if (idx > li.Count)
@@ -211,9 +211,9 @@ namespace AdaptiveExpressions.Memory
             {
                 dict[property] = value;
             }
-            else if (instance is JObject jobj)
+            else if (instance is JsonObject jobj)
             {
-                jobj[property] = FunctionUtils.ConvertToJToken(value);
+                jobj[property] = FunctionUtils.ConvertToJsonNode(value);
             }
             else
             {

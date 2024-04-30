@@ -3,8 +3,8 @@
 
 using System;
 using AdaptiveExpressions.Converters;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -62,7 +62,7 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="BoolExpression"/> class.
         /// </summary>
         /// <param name="expressionOrValue">expression or value to resolve to bool.</param>
-        public BoolExpression(JToken expressionOrValue)
+        public BoolExpression(JsonNode expressionOrValue)
             : base(expressionOrValue)
         {
         }
@@ -90,7 +90,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to BoolExpression.
         /// </summary>
         /// <param name="expressionOrValue">The JSON Token to Convert.</param>
-        public static implicit operator BoolExpression(JToken expressionOrValue) => new BoolExpression(expressionOrValue);
+        public static implicit operator BoolExpression(JsonNode expressionOrValue) => new BoolExpression(expressionOrValue);
 #pragma warning restore CA2225 // Operator overloads have named alternates
     }
 }

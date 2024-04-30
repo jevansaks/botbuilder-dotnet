@@ -3,8 +3,8 @@
 
 using System;
 using AdaptiveExpressions.Converters;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -61,8 +61,8 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="NumberExpression"/> class.
         /// </summary>
-        /// <param name="expressionOrValue">jtoken to interpret as expression or number.</param>
-        public NumberExpression(JToken expressionOrValue)
+        /// <param name="expressionOrValue">JsonNode to interpret as expression or number.</param>
+        public NumberExpression(JsonNode expressionOrValue)
             : base(expressionOrValue)
         {
         }
@@ -90,7 +90,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to an NumberExpression instance.
         /// </summary>
         /// <param name="expressionOrValue">The JSON Token to convert.</param>
-        public static implicit operator NumberExpression(JToken expressionOrValue) => new NumberExpression(expressionOrValue);
+        public static implicit operator NumberExpression(JsonNode expressionOrValue) => new NumberExpression(expressionOrValue);
 #pragma warning restore CA2225 // Operator overloads have named alternates
     }
 }

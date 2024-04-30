@@ -3,8 +3,8 @@
 
 using System;
 using Microsoft.Win32.SafeHandles;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -236,7 +236,7 @@ namespace AdaptiveExpressions.Properties
                 return default(T);
             }
 
-            return JToken.FromObject(result).ToObject<T>();
+            return JsonNode.FromObject(result).ToObject<T>();
         }
     }
 }

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -39,13 +39,13 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
                     result = tempList;
                 }
-                else if (instance is JObject jobj)
+                else if (instance is JsonObject jobj)
                 {
                     result = Object2List(jobj);
                 }
-                else if (FunctionUtils.ConvertToJToken(instance) is JObject jobject)
+                else if (FunctionUtils.ConvertToJsonNode(instance) is JsonObject JsonObject)
                 {
-                    result = Object2List(jobject);
+                    result = Object2List(JsonObject);
                 }
                 else
                 {
@@ -56,7 +56,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             return (result, error);
         }
 
-        private static List<object> Object2List(JObject jobj)
+        private static List<object> Object2List(JsonObject jobj)
         {
             var tempList = new List<object>();
             foreach (var item in jobj)

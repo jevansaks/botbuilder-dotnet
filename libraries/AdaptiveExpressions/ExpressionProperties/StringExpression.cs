@@ -3,8 +3,8 @@
 
 using System;
 using AdaptiveExpressions.Converters;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -45,7 +45,7 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="StringExpression"/> class.
         /// </summary>
         /// <param name="expressionOrValue">value to interpret as a string or expression to a string.</param>
-        public StringExpression(JToken expressionOrValue)
+        public StringExpression(JsonNode expressionOrValue)
             : base(expressionOrValue)
         {
         }
@@ -79,7 +79,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to a StringExpression instance.
         /// </summary>
         /// <param name="valueOrExpression">The JSON Token to convert.</param>
-        public static implicit operator StringExpression(JToken valueOrExpression) => new StringExpression(valueOrExpression);
+        public static implicit operator StringExpression(JsonNode valueOrExpression) => new StringExpression(valueOrExpression);
 
         /// <summary>
         /// Converts an Expression instance to a StringExpression instance.
@@ -103,7 +103,7 @@ namespace AdaptiveExpressions.Properties
                 return;
             }
 
-            var stringOrExpression = (value as string) ?? (value as JValue)?.Value as string;
+            var stringOrExpression = (value as string) ?? (value as JsonValue)?.Value as string;
             if (stringOrExpression != null)
             {
                 // if it starts with = it always is an expression

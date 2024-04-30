@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -60,8 +60,8 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
         /// </summary>
-        /// <param name="expressionOrValue">jtoken value to resolve to an enum.</param>
-        public EnumExpression(JToken expressionOrValue)
+        /// <param name="expressionOrValue">JsonNode value to resolve to an enum.</param>
+        public EnumExpression(JsonNode expressionOrValue)
             : base(expressionOrValue)
         {
         }
@@ -89,7 +89,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to an EnumExpression instance.
         /// </summary>
         /// <param name="value">The JSON Token to convert.</param>
-        public static implicit operator EnumExpression<T>(JToken value) => new EnumExpression<T>(value);
+        public static implicit operator EnumExpression<T>(JsonNode value) => new EnumExpression<T>(value);
 #pragma warning restore CA2225 // Operator overloads have named alternates
 
         /// <summary>

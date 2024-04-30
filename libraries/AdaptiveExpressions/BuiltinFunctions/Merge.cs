@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -25,7 +25,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             return FunctionUtils.ApplyWithError(
                 args =>
                 {
-                    var result = new JObject();
+                    var result = new JsonObject();
 
                     foreach (var arg in args)
                     {
@@ -49,9 +49,9 @@ namespace AdaptiveExpressions.BuiltinFunctions
                 });
         }
 
-        private static (List<JObject>, string) ParseToObjectList(object arg)
+        private static (List<JsonObject>, string) ParseToObjectList(object arg)
         {
-            var result = new List<JObject>();
+            var result = new List<JsonObject>();
             string error = null;
             if (arg == null)
             {
@@ -59,24 +59,24 @@ namespace AdaptiveExpressions.BuiltinFunctions
             }
             else if (FunctionUtils.TryParseList(arg, out var array))
             {
-                var jarray = JArray.FromObject(array);
-                foreach (var jtoken in jarray)
+                var JsonArray = JsonArray.FromObject(array);
+                foreach (var JsonNode in JsonArray)
                 {
-                    if (jtoken is JObject jobj)
+                    if (JsonNode is JsonObject jobj)
                     {
                         result.Add(jobj);
                     }
                     else
                     {
-                        error = $"The argument {jtoken} in array must be a JSON object.";
+                        error = $"The argument {JsonNode} in array must be a JSON object.";
                         break;
                     }
                 }
             }
             else
             {
-                var jtoken = FunctionUtils.ConvertToJToken(arg);
-                if (jtoken is JObject jobj)
+                var JsonNode = FunctionUtils.ConvertToJsonNode(arg);
+                if (JsonNode is JsonObject jobj)
                 {
                     result.Add(jobj);
                 }

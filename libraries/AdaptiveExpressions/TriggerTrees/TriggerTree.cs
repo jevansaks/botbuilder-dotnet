@@ -196,7 +196,9 @@ namespace AdaptiveExpressions.TriggerTrees
         private void TreeToString(StringBuilder builder, Node node, int indent)
         {
             node.ToString(builder, indent);
+#pragma warning disable CA1305 // Specify IFormatProvider
             builder.Append($" [{node.Triggers.Count}]");
+#pragma warning restore CA1305 // Specify IFormatProvider
             builder.AppendLine();
             foreach (var child in node.Specializations)
             {
@@ -204,7 +206,9 @@ namespace AdaptiveExpressions.TriggerTrees
             }
         }
 
+#pragma warning disable CA1307 // Specify StringComparison
         private string NameNode(Node node) => '"' + node.ToString().Replace("\"", "\\\"") + '"';
+#pragma warning restore CA1307 // Specify StringComparison
 
         private void GenerateGraph(StreamWriter output, Node node, int indent, HashSet<Node> visited)
         {

@@ -2,9 +2,10 @@
 // Licensed under the MIT License.
 
 using System;
+
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using AdaptiveExpressions.Converters;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -99,7 +100,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to a ValueExpression instance.
         /// </summary>
         /// <param name="valueOrExpression">The JSON Token to convert.</param>
-        public static implicit operator ValueExpression(JToken valueOrExpression) => new ValueExpression(valueOrExpression);
+        public static implicit operator ValueExpression(JsonNode valueOrExpression) => new ValueExpression(valueOrExpression);
 
         /// <summary>
         /// Converts an Expression instance to a ValueExpression instance.
@@ -114,7 +115,7 @@ namespace AdaptiveExpressions.Properties
         /// <param name="value">Value to set.</param>
         public override void SetValue(object value)
         {
-            var stringOrExpression = (value as string) ?? (value as JValue)?.Value as string;
+            var stringOrExpression = (value as string) ?? (value as JsonValue)?.ToString();
             this.ExpressionText = null;
             this.Value = null;
 
@@ -133,7 +134,9 @@ namespace AdaptiveExpressions.Properties
                 }
 
                 // keep the string as quoted expression, which will be literal unless string interpolation is used.
+#pragma warning disable CA1307 // Specify StringComparison
                 this.ExpressionText = $"=`{stringOrExpression.Replace("`", "\\`")}`";
+#pragma warning restore CA1307 // Specify StringComparison
                 return;
             }
 

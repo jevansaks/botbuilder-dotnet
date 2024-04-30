@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -60,7 +60,7 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="ObjectExpression{T}"/> class.
         /// </summary>
         /// <param name="expressionOrValue">expression or value.</param>
-        public ObjectExpression(JToken expressionOrValue)
+        public ObjectExpression(JsonNode expressionOrValue)
             : base(expressionOrValue)
         {
         }
@@ -88,7 +88,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to an ObjectExpression instance.
         /// </summary>
         /// <param name="expressionOrvalue">The JSON Token to convert.</param>
-        public static implicit operator ObjectExpression<T>(JToken expressionOrvalue) => new ObjectExpression<T>(expressionOrvalue);
+        public static implicit operator ObjectExpression<T>(JsonNode expressionOrvalue) => new ObjectExpression<T>(expressionOrvalue);
 #pragma warning restore CA2225 // Operator overloads have named alternates
     }
 }

@@ -9,9 +9,10 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using AdaptiveExpressions.Converters;
 using AdaptiveExpressions.Memory;
-using Newtonsoft.Json;
 
 namespace AdaptiveExpressions
 {
@@ -630,8 +631,7 @@ namespace AdaptiveExpressions
                     return (default(T), error);
                 }
 
-                var serializerSettings = new JsonSerializerSettings { MaxDepth = null };
-                return (JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(result, serializerSettings), serializerSettings), null);
+                return (JsonSerializer.Deserialize<T>(JsonSerializer.SerializeToNode(result)), null);
             }
 #pragma warning disable CA1031 // Do not catch general exception types (just return an error)
             catch

@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.Win32.SafeHandles;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -111,7 +111,7 @@ namespace AdaptiveExpressions.Properties
             }
 
             // return expression for json object
-            _expression = Expression.Parse($"json({JsonConvert.SerializeObject(this.Value, new JsonSerializerSettings { MaxDepth = null })})");
+            _expression = Expression.Parse($"json({JsonSerializer.Serialize(this.Value)}");
             return _expression;
         }
 
@@ -236,7 +236,7 @@ namespace AdaptiveExpressions.Properties
                 return default(T);
             }
 
-            return JToken.FromObject(result).ToObject<T>();
+            return JsonSerializer.SerializeToNode(result).Deserialize<T>();
         }
     }
 }

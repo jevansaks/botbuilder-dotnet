@@ -2,9 +2,10 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using AdaptiveExpressions.Properties;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Converters
 {
@@ -14,48 +15,27 @@ namespace AdaptiveExpressions.Converters
     /// <typeparam name="T">The property type to construct.</typeparam>
     public class ObjectExpressionConverter<T> : JsonConverter<ObjectExpression<T>>
     {
-        /// <summary>
-        /// Gets a value indicating whether this Converter can read JSON.
-        /// </summary>
-        /// <value>true if this Converter can read JSON; otherwise, false.</value>
-        public override bool CanRead => true;
-
-        /// <summary>
-        /// Reads the JSON representation of the object.
-        /// </summary>
-        /// <param name="reader">The Newtonsoft.Json.JsonReader to read from.</param>
-        /// <param name="objectType">Type of the object.</param>
-        /// <param name="existingValue">The existing value of object being read.</param>
-        /// <param name="hasExistingValue">A boolean value indicating whether there is an existing value of object to be read.</param>
-        /// <param name="serializer">The calling serializer.</param>
-        /// <returns>A ObjectExpression instance.</returns>
-        public override ObjectExpression<T> ReadJson(JsonReader reader, Type objectType, ObjectExpression<T> existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override ObjectExpression<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            if (reader.ValueType == typeof(string))
+            if (reader.TokenType == JsonTokenType.String)
             {
-                return new ObjectExpression<T>((string)reader.Value);
+                return new ObjectExpression<T>(reader.GetString());
             }
             else
             {
-                return new ObjectExpression<T>(JToken.Load(reader));
+                return new ObjectExpression<T>(JsonValue.Parse(ref reader));
             }
         }
 
-        /// <summary>
-        /// Writes the JSON representation of the object.
-        /// </summary>
-        /// <param name="writer">The Newtonsoft.Json.JsonWriter to write to.</param>
-        /// <param name="value">The value.</param>
-        /// <param name="serializer">The calling serializer.</param>
-        public override void WriteJson(JsonWriter writer, ObjectExpression<T> value, JsonSerializer serializer)
+        public override void Write(Utf8JsonWriter writer, ObjectExpression<T> value, JsonSerializerOptions options)
         {
             if (value.ExpressionText != null)
             {
-                serializer.Serialize(writer, value.ToString());
+                writer.WriteStringValue(value.ToString());
             }
             else
             {
-                serializer.Serialize(writer, value.Value);
+                JsonValue.Create(value.Value).WriteTo(writer, options);
             }
         }
     }

@@ -6,9 +6,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using AdaptiveExpressions.Properties;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Memory
 {
@@ -137,10 +138,11 @@ namespace AdaptiveExpressions.Memory
             {
                 if (FunctionUtils.TryParseList(curScope, out var li))
                 {
-                    if (li is JArray)
-                    {
-                        value = JToken.FromObject(value);
-                    }
+                    // TODO: ???
+                    //if (li is JsonArray)
+                    //{
+                    //    value = JsonNode.FromObject(value);
+                    //}
 
                     if (idx > li.Count)
                     {
@@ -191,11 +193,7 @@ namespace AdaptiveExpressions.Memory
         /// <returns>A string value.</returns>
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(_memory, new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                MaxDepth = null
-            });
+            return JsonSerializer.Serialize(_memory, new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.IgnoreCycles });
         }
 
         private (object result, string error) SetProperty(object instance, string property, object value)
@@ -211,9 +209,9 @@ namespace AdaptiveExpressions.Memory
             {
                 dict[property] = value;
             }
-            else if (instance is JObject jobj)
+            else if (instance is JsonObject jobj)
             {
-                jobj[property] = FunctionUtils.ConvertToJToken(value);
+                jobj[property] = FunctionUtils.ConvertToJsonNode(value);
             }
             else
             {

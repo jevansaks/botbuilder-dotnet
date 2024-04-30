@@ -104,7 +104,9 @@ namespace AdaptiveExpressions.TriggerTrees
 
             foreach (var binding in AnyBindings)
             {
+#pragma warning disable CA1305 // Specify IFormatProvider
                 builder.Append($" {binding.Key}->{binding.Value}");
+#pragma warning restore CA1305 // Specify IFormatProvider
             }
         }
 

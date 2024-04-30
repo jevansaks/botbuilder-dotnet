@@ -60,7 +60,9 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
             if (error == null)
             {
+#pragma warning disable CA1307 // Specify StringComparison
                 (parsed, error) = FunctionUtils.ParseTimexProperty((args[0] as string).Replace("XX", "00"));
+#pragma warning restore CA1307 // Specify StringComparison
             }
 
             if (error == null)

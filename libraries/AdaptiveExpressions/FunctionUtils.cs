@@ -11,6 +11,8 @@ using System.Text;
 using AdaptiveExpressions.Memory;
 using Microsoft.Recognizers.Text.DataTypes.TimexExpression;
 using System.Text.Json.Nodes;
+using System.Text.Json;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AdaptiveExpressions
 {
@@ -740,7 +742,9 @@ namespace AdaptiveExpressions
             }
 
             // make sure we generated a valid path
+#pragma warning disable CA1307 // Specify StringComparison
             path = path.TrimEnd('.').Replace(".[", "[");
+#pragma warning restore CA1307 // Specify StringComparison
 
             if (string.IsNullOrEmpty(path))
             {
@@ -756,6 +760,8 @@ namespace AdaptiveExpressions
         /// <param name="obj1">First object.</param>
         /// <param name="obj2">Second object.</param>
         /// <returns>If two objects are equal.</returns>
+        [RequiresDynamicCode("Uses JsonSerializer")]
+        [RequiresUnreferencedCode("Uses JsonSerializer")]
         public static bool CommonEquals(object obj1, object obj2)
         {
             if (obj1 == null || obj2 == null)
@@ -798,8 +804,8 @@ namespace AdaptiveExpressions
                     return false;
                 }
 
-                var jObj1 = JsonObject.FromObject(obj1);
-                var jObj2 = JsonObject.FromObject(obj2);
+                var jObj1 = JsonSerializer.SerializeToNode(obj1);
+                var jObj2 = JsonSerializer.SerializeToNode(obj2);
                 return JsonNode.DeepEquals(jObj1, jObj2);
             }
 
@@ -978,23 +984,7 @@ namespace AdaptiveExpressions
             }
             else
             {
-                value = jval.Value;
-                if (jval.Type == JsonNodeType.Integer)
-                {
-                    value = jval.ToObject<long>();
-                }
-                else if (jval.Type == JsonNodeType.String)
-                {
-                    value = jval.ToObject<string>();
-                }
-                else if (jval.Type == JsonNodeType.Boolean)
-                {
-                    value = jval.ToObject<bool>();
-                }
-                else if (jval.Type == JsonNodeType.Float)
-                {
-                    value = jval.ToObject<double>();
-                }
+                value = jval.GetValue<object>();
             }
 
             return value;
@@ -1472,6 +1462,7 @@ namespace AdaptiveExpressions
         {
             string result;
             var names = returnType.ToString();
+#pragma warning disable CA1307 // Specify StringComparison
             if (!names.Contains(","))
             {
                 result = $"{childExpr} is not a {names} expression in {expr}.";
@@ -1480,6 +1471,7 @@ namespace AdaptiveExpressions
             {
                 result = $"{childExpr} in {expr} is not any of [{names}].";
             }
+#pragma warning restore CA1307 // Specify StringComparison
 
             return result;
         }

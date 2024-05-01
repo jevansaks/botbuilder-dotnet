@@ -9,7 +9,7 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using AdaptiveExpressions.Converters;
+
 using AdaptiveExpressions.Memory;
 
 
@@ -60,7 +60,6 @@ namespace AdaptiveExpressions
     /// This provides an open-ended wrapper that supports a number of built-in functions and can also be extended at runtime.
     /// It also supports validation of the correctness of an expression and evaluation that should be exception free.
     /// </remarks>
-    [JsonConverter(typeof(ExpressionConverter))]
     public class Expression
     {
         /// <summary>
@@ -630,8 +629,7 @@ namespace AdaptiveExpressions
                     return (default(T), error);
                 }
 
-                var serializerSettings = new JsonSerializerSettings { MaxDepth = null };
-                return (JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(result, serializerSettings), serializerSettings), null);
+                return ((T)result, null);
             }
 #pragma warning disable CA1031 // Do not catch general exception types (just return an error)
             catch

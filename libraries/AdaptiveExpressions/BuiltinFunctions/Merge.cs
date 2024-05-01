@@ -59,8 +59,8 @@ namespace AdaptiveExpressions.BuiltinFunctions
             }
             else if (FunctionUtils.TryParseList(arg, out var array))
             {
-                var JsonArray = JsonArray.FromObject(array);
-                foreach (var JsonNode in JsonArray)
+                var jsonArray = JsonValue.Create(array);
+                foreach (var node in jsonArray)
                 {
                     if (JsonNode is JsonObject jobj)
                     {

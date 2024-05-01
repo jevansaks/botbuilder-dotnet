@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using AdaptiveExpressions.Converters;
+
 
 using System.Text.Json.Nodes;
 
@@ -12,7 +12,6 @@ namespace AdaptiveExpressions.Properties
     /// BoolExpression - represents a property which is either a boolean or a string expression which resolves to a boolean.
     /// </summary>
     /// <remarks>String values are always interpreted as an expression, whether it has '=' prefix or not.</remarks>
-    [JsonConverter(typeof(BoolExpressionConverter))]
     public class BoolExpression : ExpressionProperty<bool>
     {
         /// <summary>

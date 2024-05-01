@@ -43,9 +43,9 @@ namespace AdaptiveExpressions.BuiltinFunctions
                 {
                     result = Object2List(jobj);
                 }
-                else if (FunctionUtils.ConvertToJsonNode(instance) is JsonObject JsonObject)
+                else if (FunctionUtils.ConvertToJsonNode(instance) is JsonObject jsonObject)
                 {
-                    result = Object2List(JsonObject);
+                    result = Object2List(jsonObject);
                 }
                 else
                 {

@@ -8,7 +8,8 @@
     <PackageVersion Condition=" '$(ReleasePackageVersion)' != '' ">$(ReleasePackageVersion)</PackageVersion>
     <Configurations>Debug;Release</Configurations>
     <DocumentationFile>bin\$(Configuration)\netstandard2.0\AdaptiveExpressions.xml</DocumentationFile>
-    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>
+    <!--<IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">true</IsAotCompatible>-->
+    <PolySharpIncludeRuntimeSupportedAttributes>true</PolySharpIncludeRuntimeSupportedAttributes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -35,6 +36,10 @@
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.11.1" />
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="Microsoft.Recognizers.Text.DataTypes.TimexExpression" Version="1.3.2" />
+    <PackageReference Include="PolySharp" Version="1.14.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="System.Text.Json" Version="8.0.3" />
   </ItemGroup>
 

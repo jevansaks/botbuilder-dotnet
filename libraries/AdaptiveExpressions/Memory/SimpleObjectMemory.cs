@@ -9,6 +9,8 @@ using System.Reflection;
 using AdaptiveExpressions.Properties;
 
 using System.Text.Json.Nodes;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AdaptiveExpressions.Memory
 {
@@ -137,10 +139,11 @@ namespace AdaptiveExpressions.Memory
             {
                 if (FunctionUtils.TryParseList(curScope, out var li))
                 {
-                    if (li is JsonArray)
-                    {
-                        value = JsonNode.FromObject(value);
-                    }
+                    // TODO: ???
+                    //if (li is JsonArray)
+                    //{
+                    //    value = JsonNode.FromObject(value);
+                    //}
 
                     if (idx > li.Count)
                     {
@@ -191,11 +194,7 @@ namespace AdaptiveExpressions.Memory
         /// <returns>A string value.</returns>
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(_memory, new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                MaxDepth = null
-            });
+            return JsonSerializer.Serialize(_memory, new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.IgnoreCycles });
         }
 
         private (object result, string error) SetProperty(object instance, string property, object value)

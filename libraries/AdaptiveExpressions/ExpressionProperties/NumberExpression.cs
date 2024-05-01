@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using AdaptiveExpressions.Converters;
+
 
 using System.Text.Json.Nodes;
 
@@ -12,7 +12,7 @@ namespace AdaptiveExpressions.Properties
     /// NumberExpression - represents a property which is either a float or a string expression which resolves to a float.
     /// </summary>
     /// <remarks>String values are always interpreted as an expression, whether it has '=' prefix or not.</remarks>
-    [JsonConverter(typeof(NumberExpressionConverter))]
+    
     public class NumberExpression : ExpressionProperty<double>
     {
         /// <summary>

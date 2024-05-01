@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using System.Text.Json;
 using System.Threading;
 
 
@@ -59,7 +60,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                         }
                         else
                         {
-                            result = JsonConvert.SerializeObject(args[0], new JsonSerializerSettings { MaxDepth = null }).TrimStart('"').TrimEnd('"');
+                            result = JsonSerializer.Serialize(args[0]).TrimStart('"').TrimEnd('"');
                         }
                     }
 

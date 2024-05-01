@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using AdaptiveExpressions.Converters;
+
 
 using System.Text.Json.Nodes;
 
@@ -24,7 +24,7 @@ namespace AdaptiveExpressions.Properties
     ///     prop = "=user.age" => 45.
     ///     prop = "\=user.age" => "=user.age".
     /// </remarks>
-    [JsonConverter(typeof(ValueExpressionConverter))]
+    
     public class ValueExpression : ExpressionProperty<object>
     {
         /// <summary>
@@ -114,7 +114,7 @@ namespace AdaptiveExpressions.Properties
         /// <param name="value">Value to set.</param>
         public override void SetValue(object value)
         {
-            var stringOrExpression = (value as string) ?? (value as JsonValue)?.Value as string;
+            var stringOrExpression = (value as string) ?? (value as JsonValue)?.ToString();
             this.ExpressionText = null;
             this.Value = null;
 
@@ -133,7 +133,7 @@ namespace AdaptiveExpressions.Properties
                 }
 
                 // keep the string as quoted expression, which will be literal unless string interpolation is used.
-                this.ExpressionText = $"=`{stringOrExpression.Replace("`", "\\`")}`";
+                this.ExpressionText = $"=`{stringOrExpression.Replace("`", "\\`", StringComparison.Ordinal)}`";
                 return;
             }
 

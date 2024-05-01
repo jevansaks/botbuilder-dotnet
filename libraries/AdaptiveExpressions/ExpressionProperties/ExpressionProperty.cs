@@ -5,6 +5,7 @@ using System;
 using Microsoft.Win32.SafeHandles;
 
 using System.Text.Json.Nodes;
+using System.Text.Json;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -111,7 +112,7 @@ namespace AdaptiveExpressions.Properties
             }
 
             // return expression for json object
-            _expression = Expression.Parse($"json({JsonConvert.SerializeObject(this.Value, new JsonSerializerSettings { MaxDepth = null })})");
+            _expression = Expression.Parse($"json({JsonSerializer.Serialize(this.Value)}");
             return _expression;
         }
 
@@ -236,7 +237,9 @@ namespace AdaptiveExpressions.Properties
                 return default(T);
             }
 
-            return JsonNode.FromObject(result).ToObject<T>();
+            Environment.FailFast("Not implemented");
+            return default(T);
+            //return JsonNode.FromObject(result).ToObject<T>();
         }
     }
 }

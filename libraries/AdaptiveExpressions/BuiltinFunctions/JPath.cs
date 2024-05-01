@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.BuiltinFunctions
@@ -35,7 +36,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             {
                 try
                 {
-                    jsonObj = JsonObject.Parse(jsonStr);
+                    jsonObj = JsonSerializer.Deserialize<JsonObject>(jsonStr);
                 }
 #pragma warning disable CA1031 // Do not catch general exception types (we should probably do something about this but ignoring it for now)
                 catch

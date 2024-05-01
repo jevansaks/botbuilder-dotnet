@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using AdaptiveExpressions.Converters;
+
 
 using System.Text.Json.Nodes;
 
@@ -22,7 +22,7 @@ namespace AdaptiveExpressions.Properties
     ///     prop = "=user.name" => "Joe"
     ///     prop = "\=user" => "=user".
     /// </remarks>
-    [JsonConverter(typeof(StringExpressionConverter))]
+    
     public class StringExpression : ExpressionProperty<string>
     {
         /// <summary>

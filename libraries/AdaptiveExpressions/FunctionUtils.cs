@@ -4,15 +4,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using AdaptiveExpressions.Memory;
 using Microsoft.Recognizers.Text.DataTypes.TimexExpression;
-using System.Text.Json.Nodes;
-using System.Text.Json;
-using System.Diagnostics.CodeAnalysis;
 
 namespace AdaptiveExpressions
 {
@@ -923,7 +923,8 @@ namespace AdaptiveExpressions
                 }
                 else if (instance is JsonObject jobj)
                 {
-                    value = jobj.GetValue(property, StringComparison.OrdinalIgnoreCase);
+                    jobj.TryGetPropertyValue(property, out var node);
+                    value = node.Deserialize<object>();
                     isPresent = value != null;
                 }
                 else
@@ -1030,7 +1031,7 @@ namespace AdaptiveExpressions
             IList result = null;
             if (instance is JsonArray ja)
             {
-                result = (IList)ja.ToObject(typeof(List<object>));
+                result = ja.Deserialize<List<object>>();
             }
             else if (TryParseList(instance, out var list))
             {
@@ -1138,9 +1139,9 @@ namespace AdaptiveExpressions
             {
                 list = Object2KVPairList(jobj);
             }
-            else if (ConvertToJsonNode(instance) is JsonObject JsonObject)
+            else if (ConvertToJsonNode(instance) is JsonObject jsonObject)
             {
-                list = Object2KVPairList(JsonObject);
+                list = Object2KVPairList(jsonObject);
             }
 
             return list;
@@ -1346,7 +1347,7 @@ namespace AdaptiveExpressions
             }
             else if (timexExpr is JsonObject jTimex)
             {
-                parsed = jTimex.ToObject<TimexProperty>();
+                parsed = jTimex.Deserialize<TimexProperty>();
             }
             else if (timexExpr is string ts)
             {
@@ -1373,7 +1374,7 @@ namespace AdaptiveExpressions
 
         internal static JsonNode ConvertToJsonNode(object value)
         {
-            return value == null ? JsonValue.CreateNull() : JsonNode.FromObject(value);
+            return value == null ? JsonValue.Create(new JsonElement()) : JsonSerializer.SerializeToNode(value);
         }
 
         // collection functions
@@ -1403,7 +1404,7 @@ namespace AdaptiveExpressions
                        }
                        else
                        {
-                           var JsonArray = JsonArray.FromObject(list.OfType<object>().ToList());
+                           var jsonArray = JsonValue.Create(list.OfType<object>().ToList()).AsArray();
                            var propertyNameExpression = expression.Children[1];
                            string propertyName;
                            (propertyName, error) = propertyNameExpression.TryEvaluate<string>(state, options);
@@ -1412,11 +1413,11 @@ namespace AdaptiveExpressions
                                propertyName = propertyName ?? string.Empty;
                                if (isDescending)
                                {
-                                   result = JsonArray.OrderByDescending(obj => obj[propertyName]).ToList();
+                                   result = jsonArray.OrderByDescending(obj => obj[propertyName]).ToList();
                                }
                                else
                                {
-                                   result = JsonArray.OrderBy(obj => obj[propertyName]).ToList();
+                                   result = jsonArray.OrderBy(obj => obj[propertyName]).ToList();
                                }
                            }
                        }
@@ -1484,7 +1485,7 @@ namespace AdaptiveExpressions
             }
             else if (obj is JsonObject jobj)
             {
-                return jobj.Properties().Count();
+                return jobj.Count;
             }
             else if (!(obj is JsonValue) && obj.GetType().IsValueType == false && obj.GetType().FullName != "System.String")
             {

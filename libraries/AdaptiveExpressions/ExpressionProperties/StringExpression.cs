@@ -3,7 +3,6 @@
 
 using System;
 
-
 using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Properties
@@ -22,7 +21,6 @@ namespace AdaptiveExpressions.Properties
     ///     prop = "=user.name" => "Joe"
     ///     prop = "\=user" => "=user".
     /// </remarks>
-    
     public class StringExpression : ExpressionProperty<string>
     {
         /// <summary>
@@ -103,7 +101,7 @@ namespace AdaptiveExpressions.Properties
                 return;
             }
 
-            var stringOrExpression = (value as string) ?? (value as JsonValue)?.Value as string;
+            var stringOrExpression = (value as string) ?? (value as JsonValue)?.ToString() as string;
             if (stringOrExpression != null)
             {
                 // if it starts with = it always is an expression
@@ -119,7 +117,9 @@ namespace AdaptiveExpressions.Properties
                 }
 
                 // keep the string as quoted expression, which will be literal unless string interpolation is used.
+#pragma warning disable CA1307 // Specify StringComparison
                 this.ExpressionText = $"=`{stringOrExpression.Replace("`", "\\`")}`";
+#pragma warning restore CA1307 // Specify StringComparison
                 return;
             }
         }

@@ -6,11 +6,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using AdaptiveExpressions.Properties;
-
-using System.Text.Json.Nodes;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using AdaptiveExpressions.Properties;
 
 namespace AdaptiveExpressions.Memory
 {

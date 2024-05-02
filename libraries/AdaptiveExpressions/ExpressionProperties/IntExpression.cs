@@ -3,7 +3,8 @@
 
 using System;
 using System.Text.Json.Nodes;
-
+using System.Text.Json.Serialization;
+using AdaptiveExpressions.Converters;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -11,6 +12,7 @@ namespace AdaptiveExpressions.Properties
     /// IntExpression - represents a property which is either an Integer or a string expression which resolves to a Integer.
     /// </summary>
     /// <remarks>String values are always interpreted as an expression, whether it has '=' prefix or not.</remarks>
+    [JsonConverter(typeof(IntExpressionConverter))]
     public class IntExpression : ExpressionProperty<int>
     {
         /// <summary>

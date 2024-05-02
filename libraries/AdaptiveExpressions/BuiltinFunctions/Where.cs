@@ -3,8 +3,8 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using AdaptiveExpressions.Memory;
 using System.Text.Json.Nodes;
+using AdaptiveExpressions.Memory;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {

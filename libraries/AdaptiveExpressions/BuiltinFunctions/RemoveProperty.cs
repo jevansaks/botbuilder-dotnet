@@ -24,7 +24,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             return FunctionUtils.Apply(args =>
             {
                 var newJobj = (JsonObject)args[0];
-                newJobj.Property(args[1].ToString(), StringComparison.Ordinal).Remove();
+                newJobj.Remove(args[1].ToString());
                 return newJobj;
             });
         }

@@ -2,10 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
-using Microsoft.Win32.SafeHandles;
-
-using System.Text.Json.Nodes;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using Microsoft.Win32.SafeHandles;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -237,9 +236,7 @@ namespace AdaptiveExpressions.Properties
                 return default(T);
             }
 
-            Environment.FailFast("Not implemented");
-            return default(T);
-            //return JsonNode.FromObject(result).ToObject<T>();
+            return JsonSerializer.SerializeToNode(result).Deserialize<T>();
         }
     }
 }

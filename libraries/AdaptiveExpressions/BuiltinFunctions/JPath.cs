@@ -58,7 +58,8 @@ namespace AdaptiveExpressions.BuiltinFunctions
             {
                 try
                 {
-                    value = jsonObj.SelectTokens(jpath);
+                    var jsonPath = global::Json.Path.JsonPath.Parse(jpath);
+                    value = jsonPath.Evaluate(jsonObj);
                 }
 #pragma warning disable CA1031 // Do not catch general exception types (we should probably do something about this but ignoring for now)
                 catch

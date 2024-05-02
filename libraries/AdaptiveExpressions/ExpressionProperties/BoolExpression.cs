@@ -3,7 +3,6 @@
 
 using System;
 
-
 using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Properties

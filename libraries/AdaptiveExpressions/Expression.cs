@@ -12,7 +12,6 @@ using System.Text;
 
 using AdaptiveExpressions.Memory;
 
-
 namespace AdaptiveExpressions
 {
     /// <summary>

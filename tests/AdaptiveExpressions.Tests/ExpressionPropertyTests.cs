@@ -175,7 +175,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 Converters = { new ExpressionPropertyConverter<Foo>() }
             };
 
-            var bar = JsonSerializer.Deserialize<Blat>(json);
+            var bar = JsonSerializer.Deserialize<Blat>(json, settings);
             Assert.Equal(typeof(Blat), bar.GetType());
             Assert.Equal(typeof(ExpressionProperty<Foo>), bar.Foo.GetType());
             var (foo, error) = bar.Foo.TryGetValue(state);
@@ -203,7 +203,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 Converters = { new ExpressionPropertyConverter<Foo>() }
             };
 
-            var bar = JsonSerializer.Deserialize<Blat>(json);
+            var bar = JsonSerializer.Deserialize<Blat>(json, settings);
             Assert.Equal(typeof(Blat), bar.GetType());
             Assert.Equal(typeof(ExpressionProperty<Foo>), bar.Foo.GetType());
             var (foo, error) = bar.Foo.TryGetValue(state);

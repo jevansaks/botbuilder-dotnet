@@ -1003,8 +1003,9 @@ namespace AdaptiveExpressions
                 }
                 else if (instance is JsonObject jobj)
                 {
-                    value = jobj.FirstOrDefault(x => x.Key.Equals(property, StringComparison.OrdinalIgnoreCase)).Value;
-                    isPresent = value != null;
+                    var result = jobj.FirstOrDefault(x => x.Key.Equals(property, StringComparison.OrdinalIgnoreCase));
+                    value = result.Value;
+                    isPresent = result.Key != null;
                 }
                 else
                 {

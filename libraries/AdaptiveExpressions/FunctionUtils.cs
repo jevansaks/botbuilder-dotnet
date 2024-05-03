@@ -984,15 +984,13 @@ namespace AdaptiveExpressions
             value = null;
             if (instance != null)
             {
-                property = property.ToLowerInvariant();
-
                 // NOTE: what about other type of TKey, TValue?
                 if (instance is IDictionary<string, object> idict)
                 {
                     if (!idict.TryGetValue(property, out value))
                     {
                         // fall back to case insensitive
-                        var prop = idict.Keys.Where(k => k.ToLowerInvariant() == property).SingleOrDefault();
+                        var prop = idict.Keys.Where(k => string.Equals(k, property, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
                         if (prop != null)
                         {
                             isPresent = idict.TryGetValue(prop, out value);
@@ -1012,7 +1010,7 @@ namespace AdaptiveExpressions
                 {
                     // Use reflection
                     var type = instance.GetType();
-                    var prop = type.GetProperties().Where(p => p.Name.ToLowerInvariant() == property).SingleOrDefault();
+                    var prop = type.GetProperties().Where(p => string.Equals(p.Name, property, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
                     if (prop != null)
                     {
                         value = prop.GetValue(instance);
@@ -1611,6 +1609,7 @@ namespace AdaptiveExpressions
                     result: out var parsed))
             {
                 (result, error) = transform != null ? transform(parsed) : (parsed, null);
+
                 //if (parsed.ToString(DefaultDateTimeFormat, CultureInfo.InvariantCulture).Equals(timeStamp, StringComparison.OrdinalIgnoreCase))
                 //{
                 //    (result, error) = transform != null ? transform(parsed) : (parsed, null);

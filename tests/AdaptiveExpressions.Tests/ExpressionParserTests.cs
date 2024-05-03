@@ -1198,9 +1198,11 @@ namespace AdaptiveExpressions.Tests
             #endregion
         };
 
+        public static CultureInfo EnUsCultureInfo => new ("en-US");
+
         public static IEnumerable<object[]> DataForThreadLocale => new[]
         {
-            Test("replace(addDays(timestamp, 1, '', 'en-US'), '20', '')", "3/16/18 1:00:00 PM"),
+            Test("replace(addDays(timestamp, 1, '', 'en-US'), '20', '')", new DateTime(2018, 3, 16, 13, 0, 0).ToString(string.Empty, EnUsCultureInfo).Replace("20", string.Empty)),
             Test("addDays(timestamp, 1, 'D')", "vendredi 16 mars 2018"),
             Test("addHours(timestamp, 2, 'D')", "jeudi 15 mars 2018"),
             Test("addMinutes(timestamp, 30, '')", "15/03/2018 13:30:00"),

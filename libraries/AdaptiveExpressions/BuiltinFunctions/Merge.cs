@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.BuiltinFunctions
@@ -38,11 +39,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
                         foreach (var item in list)
                         {
-// TODO: Merge?
-                            //result.Merge(item, new JsonMergeSettings
-                            //{
-                            //    MergeArrayHandling = MergeArrayHandling.Replace
-                            //});
+                            result.Merge(item);
                         }
                     }
 
@@ -60,7 +57,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             }
             else if (FunctionUtils.TryParseList(arg, out var array))
             {
-                var jsonArray = JsonValue.Create(array).AsArray();
+                var jsonArray = JsonSerializer.SerializeToNode(array).AsArray();
                 foreach (var node in jsonArray)
                 {
                     if (node is JsonObject jobj)

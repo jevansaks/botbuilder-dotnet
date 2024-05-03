@@ -1603,26 +1603,15 @@ namespace AdaptiveExpressions
             object result = null;
             string error = null;
 
-            if (DateTime.TryParse(
-                    s: timeStamp,
-                    provider: CultureInfo.InvariantCulture,
-                    styles: DateTimeStyles.RoundtripKind,
-                    result: out var parsed))
+            try
             {
-                (result, error) = transform != null ? transform(parsed) : (parsed, null);
+                var parsed = JsonSerializer.Deserialize<DateTime>($"\"{timeStamp}\"");
 
-                //if (parsed.ToString(DefaultDateTimeFormat, CultureInfo.InvariantCulture).Equals(timeStamp, StringComparison.OrdinalIgnoreCase))
-                //{
-                //    (result, error) = transform != null ? transform(parsed) : (parsed, null);
-                //}
-                //else
-                //{
-                //    error = $"{timeStamp} is not standard ISO format.";
-                //}
+                (result, error) = transform != null ? transform(parsed) : (parsed, null);
             }
-            else
+            catch (JsonException e)
             {
-                error = $"Could not parse {timeStamp}";
+                error = $"{timeStamp} is not standard ISO format.";
             }
 
             return (result, error);

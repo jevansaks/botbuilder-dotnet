@@ -31,7 +31,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                             string error = null;
                             try
                             {
-                                result = JsonNode.Parse(args[0].ToString());
+                                result = JsonObject.Parse(args[0].ToString());
                             }
                             catch (JsonException err)
                             {

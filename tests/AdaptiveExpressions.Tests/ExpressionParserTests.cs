@@ -8,11 +8,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using AdaptiveExpressions.BuiltinFunctions;
 using AdaptiveExpressions.Memory;
+using Json.More;
 using Microsoft.Recognizers.Text.DataTypes.TimexExpression;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace AdaptiveExpressions.Tests
@@ -40,7 +42,7 @@ namespace AdaptiveExpressions.Tests
                 "emptyObject", new Dictionary<string, object>()
             },
             {
-                "emptyJObject", new JObject()
+                "emptyJObject", new JsonObject()
             },
             {
                 "emptyAnonymousObject", new { }
@@ -118,50 +120,50 @@ namespace AdaptiveExpressions.Tests
             { "ticks", 637243624200000000 },
             {
                 "json1", @"{
-                          'FirstName': 'John',
-                          'LastName': 'Smith',
-                          'Enabled': false,
-                          'Roles': [ 'User' ]
+                          ""FirstName"": ""John"",
+                          ""LastName"": ""Smith"",
+                          ""Enabled"": false,
+                          ""Roles"": [ ""User"" ]
                         }"
             },
             {
                 "json2", @"{
-                          'Enabled': true,
-                          'Roles': [ 'Customer', 'Admin' ]
+                          ""Enabled"": true,
+                          ""Roles"": [ ""Customer"", ""Admin"" ]
                         }"
             },
             {
                 "json3", @"{
-                          'Age': 36,
+                          ""Age"": 36
                         }"
             },
             { "xmlStr", "<?xml version='1.0'?> <produce> <item> <name>Gala</name> <type>apple</type> <count>20</count> </item> <item> <name>Honeycrisp</name> <type>apple</type> <count>10</count> </item> </produce>" },
             {
                 "jsonStr", @"{
-                          'Stores': [
-                            'Lambton Quay',
-                            'Willis Street'
+                          ""Stores"": [
+                            ""Lambton Quay"",
+                            ""Willis Street""
                           ],
-                          'Manufacturers': [
+                          ""Manufacturers"": [
                             {
-                              'Name': 'Acme Co',
-                              'Products': [
+                              ""Name"": ""Acme Co"",
+                              ""Products"": [
                                 {
-                                  'Name': 'Anvil',
-                                  'Price': 50
+                                  ""Name"": ""Anvil"",
+                                  ""Price"": 50
                                 }
                               ]
                             },
                             {
-                              'Name': 'Contoso',
-                              'Products': [
+                              ""Name"": ""Contoso"",
+                              ""Products"": [
                                 {
-                                  'Name': 'Elbow Grease',
-                                  'Price': 99.95
+                                  ""Name"": ""Elbow Grease"",
+                                  ""Price"": 99.95
                                 },
                                 {
-                                  'Name': 'Headlight Fluid',
-                                  'Price': 4
+                                  ""Name"": ""Headlight Fluid"",
+                                  ""Price"": 4
                                 }
                               ]
                             }
@@ -299,7 +301,7 @@ namespace AdaptiveExpressions.Tests
                 }
             },
             {
-                "numberJArray", new JArray
+                "numberJArray", new JsonArray
                 {
                     1, 2
                 }
@@ -386,7 +388,7 @@ namespace AdaptiveExpressions.Tests
             Test(@"`hi ${string('jack`')}`", "hi jack`"),
             Test(@"`\${world}`", "${world}"), // use escape character
             Test("length(`hello ${world}`)", "hello world".Length),
-            Test("json(`{'foo': '${hello}','item': '${world}'}`).foo", "hello"),
+            Test("json(`{\"foo\": \"${hello}\",\"item\": \"${world}\"}`).foo", "hello"),
             Test("`hello ${world}` == 'hello world'", true),
             Test("`hello ${world}` != 'hello hello'", true),
             Test("`hello ${user.nickname}` == 'hello John'", true),
@@ -729,7 +731,7 @@ namespace AdaptiveExpressions.Tests
             Test("string('str\"')", "str\""),
             Test("string(one)", "1"),
             Test("string(bool(1))", "true"),
-            Test("string(bag.set)", "{\"four\":4.0}"),
+            Test("string(bag.set)", "{\"four\":4}"),
             Test("bool(1)", true),
             Test("bool(0)", false),
             Test("bool(null)", false),
@@ -1335,7 +1337,7 @@ namespace AdaptiveExpressions.Tests
         [MemberData(nameof(Data))]
         public void EvaluateJson(string input, object expected, HashSet<string> expectedRefs)
         {
-            var jsonScope = JToken.FromObject(scope);
+            var jsonScope = JsonValue.Create(scope);
             var parsed = Expression.Parse(input);
             Assert.NotNull(parsed);
             var (actual, msg) = parsed.TryEvaluate(jsonScope);
@@ -1468,19 +1470,19 @@ namespace AdaptiveExpressions.Tests
         public void TestStackMemory()
         {
             var sM = new StackedMemory();
-            var jObj1 = new JObject
+            var jObj1 = new JsonObject
             {
                 ["a"] = "a",
                 ["b"] = "b",
                 ["c"] = null
             };
 
-            var jObj2 = new JObject
+            var jObj2 = new JsonObject
             {
                 ["c"] = "c"
             };
 
-            var jObj3 = new JObject
+            var jObj3 = new JsonObject
             {
                 ["a"] = "newa",
                 ["b"] = null,
@@ -1561,28 +1563,26 @@ namespace AdaptiveExpressions.Tests
         private object ResolveValue(object obj)
         {
             object value;
-            if (!(obj is JValue jval))
+            if (!(obj is JsonValue jval))
             {
                 value = obj;
             }
             else
             {
-                value = jval.Value;
-                if (jval.Type == JTokenType.Integer)
+                switch (jval.GetValueKind())
                 {
-                    value = jval.ToObject<int>();
-                }
-                else if (jval.Type == JTokenType.String)
-                {
-                    value = jval.ToObject<string>();
-                }
-                else if (jval.Type == JTokenType.Boolean)
-                {
-                    value = jval.ToObject<bool>();
-                }
-                else if (jval.Type == JTokenType.Float)
-                {
-                    value = jval.ToObject<float>();
+                    case JsonValueKind.String:
+                        return jval.GetString();
+                    case JsonValueKind.Number:
+                        return jval.GetNumber();
+                    case JsonValueKind.Null:
+                        return null;
+                    case JsonValueKind.True:
+                        return true;
+                    case JsonValueKind.False:
+                        return false;
+                    default:
+                        return jval.GetValue<object>();
                 }
             }
 

@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -12,6 +13,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using AdaptiveExpressions.Memory;
+using Json.More;
 using Microsoft.Recognizers.Text.DataTypes.TimexExpression;
 
 namespace AdaptiveExpressions
@@ -374,6 +376,11 @@ namespace AdaptiveExpressions
             if (!(value is JsonObject) && value is IList listValue)
             {
                 list = listValue;
+                isList = true;
+            }
+            else if (value is JsonArray jarray)
+            {
+                list = jarray.ToList();
                 isList = true;
             }
 
@@ -977,31 +984,58 @@ namespace AdaptiveExpressions
         /// <returns>Corresponding base type if input is a JsonValue.</returns>
         internal static object ResolveValue(object obj)
         {
-            if (!(obj is JsonValue jval))
-            {
-                return obj;
-            }
-            else
+            if (obj is JsonValue jval)
             {
                 switch (jval.GetValueKind())
                 {
                     case JsonValueKind.String:
-                        return jval.GetValue<string>();
+                        return jval.GetString();
                     case JsonValueKind.Number:
-                        return jval.GetValue<decimal>();
+                        return jval.GetNumber();
                     case JsonValueKind.Null:
                         return null;
-                    case JsonValueKind.Object:
-                        return jval.GetValue<object>();
                     case JsonValueKind.True:
                         return true;
                     case JsonValueKind.False:
                         return false;
                     default:
-                        Environment.FailFast("Unexpected fall-through to default in ResolveValue");
+                        return jval.GetValue<object>();
+                }
+            }
+            else if (obj is JsonElement jelem)
+            {
+                switch (jelem.ValueKind)
+                {
+                    case JsonValueKind.String:
+                        return jelem.GetString();
+                    case JsonValueKind.Number:
+                        if (jelem.TryGetInt32(out var int32))
+                        {
+                            return int32;
+                        }
+                        else if (jelem.TryGetInt64(out var int64))
+                        {
+                            return int64;
+                        }
+                        else if (jelem.TryGetDecimal(out var dec))
+                        {
+                            return dec;
+                        }
+
+                        return jelem.GetSingle();
+                    case JsonValueKind.Null:
+                        return null;
+                    case JsonValueKind.True:
+                        return true;
+                    case JsonValueKind.False:
+                        return false;
+                    default:
+                        Environment.FailFast("Unhandled JsonValueKind");
                         return null;
                 }
             }
+
+            return obj;
         }
 
         internal static (object value, string error) WrapGetValue(IMemory memory, string property, Options options)
@@ -1044,11 +1078,15 @@ namespace AdaptiveExpressions
             IList result = null;
             if (instance is JsonArray ja)
             {
-                result = ja.Deserialize<List<object>>();
+                result = ja.Select(x => ResolveValue(x)).ToList();
             }
             else if (TryParseList(instance, out var list))
             {
-                result = list;
+                result = new List<object>();
+                foreach (var x in list)
+                {
+                    result.Add(ResolveValue(x));
+                }
             }
 
             return result;
@@ -1387,7 +1425,7 @@ namespace AdaptiveExpressions
 
         internal static JsonNode ConvertToJsonNode(object value)
         {
-            return value == null ? JsonValue.Create(new JsonElement()) : JsonSerializer.SerializeToNode(value);
+            return value == null ? null : JsonSerializer.SerializeToNode(value);
         }
 
         // collection functions
@@ -1417,7 +1455,8 @@ namespace AdaptiveExpressions
                        }
                        else
                        {
-                           var jsonArray = JsonValue.Create(list.OfType<object>().ToList()).AsArray();
+                           var x = JsonSerializer.SerializeToNode(list);
+                           var jsonArray = x.AsArray();
                            var propertyNameExpression = expression.Children[1];
                            string propertyName;
                            (propertyName, error) = propertyNameExpression.TryEvaluate<string>(state, options);
@@ -1426,11 +1465,11 @@ namespace AdaptiveExpressions
                                propertyName = propertyName ?? string.Empty;
                                if (isDescending)
                                {
-                                   result = jsonArray.OrderByDescending(obj => obj[propertyName]).ToList();
+                                   result = jsonArray.OrderByDescending(obj => obj[propertyName], JsonNodeComparer.Instance).ToList();
                                }
                                else
                                {
-                                   result = jsonArray.OrderBy(obj => obj[propertyName]).ToList();
+                                   result = jsonArray.OrderBy(obj => obj[propertyName], JsonNodeComparer.Instance).ToList();
                                }
                            }
                        }
@@ -1443,6 +1482,40 @@ namespace AdaptiveExpressions
 
                return (result, error);
            };
+
+        internal static void Merge(this JsonObject target, JsonObject source)
+        {
+            foreach (var kvp in source)
+            {
+                var newValue = kvp.Value;
+                if (target.TryGetPropertyValue(kvp.Key, out var value))
+                {
+                    if (value.GetValueKind() == JsonValueKind.Object && newValue.GetValueKind() == JsonValueKind.Object)
+                    {
+                        newValue.AsObject().Merge(value.AsObject());
+                    }
+                    else if (value.GetValueKind() == JsonValueKind.Array && newValue.GetValueKind() == JsonValueKind.Array)
+                    {
+                        // Merge strategy = replace, so ignore the existing array.
+                        //newValue.AsArray().Merge(value.AsArray());
+                    }
+                }
+
+                target[kvp.Key] = newValue.DeepClone();
+            }
+        }
+
+        //internal static void Merge(this JsonArray target, JsonArray source)
+        //{
+        //    var set = target.ToHashSet();
+        //    foreach (var val in source)
+        //    {
+        //        if (!set.Contains(val))
+        //        {
+        //            target.Add(val);
+        //        }
+        //    }
+        //}
 
         private static (object, string) ParseISOTimestamp(string timeStamp, Func<DateTime, (object, string)> transform = null)
         {
@@ -1507,6 +1580,13 @@ namespace AdaptiveExpressions
             }
 
             return -1;
+        }
+
+        private class JsonNodeComparer : IComparer<JsonNode>
+        {
+            public static readonly JsonNodeComparer Instance = new JsonNodeComparer();
+
+            public int Compare(JsonNode x, JsonNode y) => string.CompareOrdinal(x.ToString(), y.ToString());
         }
     }
 }

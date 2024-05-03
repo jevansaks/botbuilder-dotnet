@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -385,6 +386,80 @@ namespace AdaptiveExpressions
             }
 
             return isList;
+        }
+
+        /// <summary>
+        /// Try to coerce object to IList.
+        /// </summary>
+        /// <param name="value">Value to coerce.</param>
+        /// <param name="list">IList if found.</param>
+        /// <returns>true if found IList.</returns>
+        public static bool TryAsList(object value, out IEnumerable list)
+        {
+            var isList = false;
+            list = null;
+            if (value is IList listValue)
+            {
+                list = listValue;
+                isList = true;
+            }
+            else if (value is JsonArray jarray)
+            {
+                list = jarray;
+                isList = true;
+            }
+
+            return isList;
+        }
+
+        public static int GetListCount(IEnumerable list)
+        {
+            if (list is IList listValue)
+            {
+                return listValue.Count;
+            }
+            else if (list is JsonArray jarray)
+            {
+                return jarray.Count;
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        public static void AppendToList(IEnumerable list, object value)
+        {
+            if (list is IList ilist)
+            {
+                ilist.Add(value);
+            }
+            else if (list is JsonArray jarray)
+            {
+                JsonValue jvalue = value as JsonValue;
+                if (jvalue == null)
+                {
+                    jvalue = JsonValue.Create(value);
+                }
+
+                jarray.Add(jvalue);
+            }
+        }
+
+        public static void SetIndex(IEnumerable list, int idx, object value)
+        {
+            if (list is IList ilist)
+            {
+                ilist[idx] = value;
+            }
+            else if (list is JsonArray jarray)
+            {
+                JsonValue jvalue = value as JsonValue;
+                if (jvalue == null)
+                {
+                    jvalue = JsonValue.Create(value);
+                }
+
+                jarray[idx] = jvalue;
+            }
         }
 
         /// <summary>
@@ -991,6 +1066,12 @@ namespace AdaptiveExpressions
                     case JsonValueKind.String:
                         return jval.GetString();
                     case JsonValueKind.Number:
+                        // If this is a JsonElement we can get back int vs floating point from it, so try that first
+                        if (jval.TryGetValue<JsonElement>(out var jelem))
+                        {
+                            return ResolveValue(jelem);
+                        }
+
                         return jval.GetNumber();
                     case JsonValueKind.Null:
                         return null;
@@ -1004,38 +1085,39 @@ namespace AdaptiveExpressions
             }
             else if (obj is JsonElement jelem)
             {
-                switch (jelem.ValueKind)
-                {
-                    case JsonValueKind.String:
-                        return jelem.GetString();
-                    case JsonValueKind.Number:
-                        if (jelem.TryGetInt32(out var int32))
-                        {
-                            return int32;
-                        }
-                        else if (jelem.TryGetInt64(out var int64))
-                        {
-                            return int64;
-                        }
-                        else if (jelem.TryGetDecimal(out var dec))
-                        {
-                            return dec;
-                        }
-
-                        return jelem.GetSingle();
-                    case JsonValueKind.Null:
-                        return null;
-                    case JsonValueKind.True:
-                        return true;
-                    case JsonValueKind.False:
-                        return false;
-                    default:
-                        Environment.FailFast("Unhandled JsonValueKind");
-                        return null;
-                }
+                return ResolveValue(jelem);
             }
 
             return obj;
+        }
+
+        internal static object ResolveValue(JsonElement jelem)
+        {
+            switch (jelem.ValueKind)
+            {
+                case JsonValueKind.String:
+                    return jelem.GetString();
+                case JsonValueKind.Number:
+                    if (jelem.TryGetInt32(out var int32))
+                    {
+                        return int32;
+                    }
+                    else if (jelem.TryGetInt64(out var int64))
+                    {
+                        return int64;
+                    }
+
+                    return jelem.GetDecimal();
+                case JsonValueKind.Null:
+                    return null;
+                case JsonValueKind.True:
+                    return true;
+                case JsonValueKind.False:
+                    return false;
+                default:
+                    Environment.FailFast("Unhandled JsonValueKind");
+                    return null;
+            }
         }
 
         internal static (object value, string error) WrapGetValue(IMemory memory, string property, Options options)
@@ -1446,11 +1528,11 @@ namespace AdaptiveExpressions
                        {
                            if (isDescending)
                            {
-                               result = list.OfType<object>().OrderByDescending(item => item).ToList();
+                               result = list.OfType<object>().OrderByDescending(item => item, JsonObjectComparer.Instance).ToList();
                            }
                            else
                            {
-                               result = list.OfType<object>().OrderBy(item => item).ToList();
+                               result = list.OfType<object>().OrderBy(item => item, JsonObjectComparer.Instance).ToList();
                            }
                        }
                        else
@@ -1465,11 +1547,11 @@ namespace AdaptiveExpressions
                                propertyName = propertyName ?? string.Empty;
                                if (isDescending)
                                {
-                                   result = jsonArray.OrderByDescending(obj => obj[propertyName], JsonNodeComparer.Instance).ToList();
+                                   result = jsonArray.OrderByDescending(obj => obj[propertyName], JsonObjectComparer.Instance).ToList();
                                }
                                else
                                {
-                                   result = jsonArray.OrderBy(obj => obj[propertyName], JsonNodeComparer.Instance).ToList();
+                                   result = jsonArray.OrderBy(obj => obj[propertyName], JsonObjectComparer.Instance).ToList();
                                }
                            }
                        }
@@ -1528,14 +1610,15 @@ namespace AdaptiveExpressions
                     styles: DateTimeStyles.RoundtripKind,
                     result: out var parsed))
             {
-                if (parsed.ToString(DefaultDateTimeFormat, CultureInfo.InvariantCulture).Equals(timeStamp, StringComparison.OrdinalIgnoreCase))
-                {
-                    (result, error) = transform != null ? transform(parsed) : (parsed, null);
-                }
-                else
-                {
-                    error = $"{timeStamp} is not standard ISO format.";
-                }
+                (result, error) = transform != null ? transform(parsed) : (parsed, null);
+                //if (parsed.ToString(DefaultDateTimeFormat, CultureInfo.InvariantCulture).Equals(timeStamp, StringComparison.OrdinalIgnoreCase))
+                //{
+                //    (result, error) = transform != null ? transform(parsed) : (parsed, null);
+                //}
+                //else
+                //{
+                //    error = $"{timeStamp} is not standard ISO format.";
+                //}
             }
             else
             {
@@ -1582,11 +1665,59 @@ namespace AdaptiveExpressions
             return -1;
         }
 
-        private class JsonNodeComparer : IComparer<JsonNode>
+        private class JsonObjectComparer : IComparer<JsonNode>, IComparer<object>
         {
-            public static readonly JsonNodeComparer Instance = new JsonNodeComparer();
+            public static readonly JsonObjectComparer Instance = new JsonObjectComparer();
 
-            public int Compare(JsonNode x, JsonNode y) => string.CompareOrdinal(x.ToString(), y.ToString());
+            public int Compare(JsonNode x, JsonNode y)
+            {
+                var xkind = x.GetValueKind();
+                var ykind = y.GetValueKind();
+                if (xkind == ykind)
+                {
+                    if (xkind == JsonValueKind.Number)
+                    {
+                        return x.AsValue().GetValue<decimal>().CompareTo(y.AsValue().GetValue<decimal>());
+                    }
+                    else if (xkind == JsonValueKind.String)
+                    {
+                        return string.CompareOrdinal(x.AsValue().GetString(), y.AsValue().GetString());
+                    }
+                }
+
+                return xkind.CompareTo(ykind);
+            }
+
+            public int Compare(object x, object y)
+            {
+                if (x is JsonNode xj && y is JsonNode yj)
+                {
+                    return Compare(xj, yj);
+                }
+                else if (x is string xs && y is string ys)
+                {
+                    return string.CompareOrdinal(xs, ys);
+                }
+                else if (x is IComparable xc && y is IComparable yc)
+                {
+                    return xc.CompareTo(yc);
+                }
+
+                if (x == null && y == null)
+                {
+                    return 0;
+                }
+                else if (x == null && y != null)
+                {
+                    return -1;
+                }
+                else if (x != null && y == null)
+                {
+                    return 1;
+                }
+
+                return x.GetHashCode().CompareTo(y.GetHashCode());
+            }
         }
     }
 }

@@ -63,6 +63,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                     {
                         jpathFixed = "$." + jpathFixed;
                     }
+
                     var jsonPath = global::Json.Path.JsonPath.Parse(jpathFixed);
                     value = jsonPath.Evaluate(jsonObj).Matches.Select(x => x.Value);
                 }

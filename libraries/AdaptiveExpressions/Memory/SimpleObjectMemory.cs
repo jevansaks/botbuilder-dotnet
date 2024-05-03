@@ -136,26 +136,21 @@ namespace AdaptiveExpressions.Memory
             // set the last value
             if (int.TryParse(parts.Last(), out var idx))
             {
-                if (FunctionUtils.TryParseList(curScope, out var li))
+                if (FunctionUtils.TryAsList(curScope, out var li))
                 {
-                    // TODO: ???
-                    //if (li is JsonArray)
-                    //{
-                    //    value = JsonNode.FromObject(value);
-                    //}
-
-                    if (idx > li.Count)
+                    var count = FunctionUtils.GetListCount(li);
+                    if (idx > count)
                     {
                         error = $"{idx} index out of range";
                     }
-                    else if (idx == li.Count)
+                    else if (idx == count)
                     {
                         // expand for one
-                        li.Add(value);
+                        FunctionUtils.AppendToList(li, value);
                     }
                     else
                     {
-                        li[idx] = value;
+                        FunctionUtils.SetIndex(li, idx, value);
                     }
                 }
                 else

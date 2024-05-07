@@ -20,6 +20,7 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="BoolExpression"/> class.
         /// </summary>
         public BoolExpression()
+            : base(AdaptiveExpressionsSerializerContext.Default.Boolean)
         {
         }
 
@@ -28,7 +29,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="value">bool value.</param>
         public BoolExpression(bool value) 
-            : base(value)
+            : base(value, AdaptiveExpressionsSerializerContext.Default.Boolean)
         {
         }
 
@@ -37,7 +38,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">expression to resolve to bool.</param>
         public BoolExpression(string expression)
-            : base(expression)
+            : base(expression, AdaptiveExpressionsSerializerContext.Default.Boolean)
         {
         }
 
@@ -46,7 +47,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">expression to resolve to bool.</param>
         public BoolExpression(Expression expression)
-            : base(expression)
+            : base(expression, AdaptiveExpressionsSerializerContext.Default.Boolean)
         {
         }
 
@@ -64,7 +65,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expressionOrValue">expression or value to resolve to bool.</param>
         public BoolExpression(JsonNode expressionOrValue)
-            : base(expressionOrValue)
+            : base(expressionOrValue, AdaptiveExpressionsSerializerContext.Default.Boolean)
         {
         }
 

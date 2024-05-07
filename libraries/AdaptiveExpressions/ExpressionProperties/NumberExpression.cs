@@ -20,6 +20,7 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="NumberExpression"/> class.
         /// </summary>
         public NumberExpression()
+            : base(AdaptiveExpressionsSerializerContext.Default.Double)
         {
         }
 
@@ -28,7 +29,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="value">value to use.</param>
         public NumberExpression(double value) 
-            : base(value)
+            : base(value, AdaptiveExpressionsSerializerContext.Default.Double)
         {
         }
 
@@ -37,7 +38,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">string to interpret as expression or number.</param>
         public NumberExpression(string expression)
-            : base(expression)
+            : base(expression, AdaptiveExpressionsSerializerContext.Default.Double)
         {
         }
 
@@ -46,7 +47,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">expression.</param>
         public NumberExpression(Expression expression)
-            : base(expression)
+            : base(expression, AdaptiveExpressionsSerializerContext.Default.Double)
         {
         }
 
@@ -64,7 +65,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expressionOrValue">JsonNode to interpret as expression or number.</param>
         public NumberExpression(JsonNode expressionOrValue)
-            : base(expressionOrValue)
+            : base(expressionOrValue, AdaptiveExpressionsSerializerContext.Default.Double)
         {
         }
 

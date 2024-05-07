@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Threading;
 using AdaptiveExpressions.BuiltinFunctions;
 using AdaptiveExpressions.Memory;
@@ -19,7 +20,10 @@ using Xunit;
 
 namespace AdaptiveExpressions.Tests
 {
-    public class ExpressionParserTests
+    /// <summary>
+    /// Expression parser tests.
+    /// </summary>
+    public partial class ExpressionParserTests
     {
         private static readonly string NullStr = null;
 
@@ -45,7 +49,7 @@ namespace AdaptiveExpressions.Tests
                 "emptyJObject", new JsonObject()
             },
             {
-                "emptyAnonymousObject", new { }
+                "emptyAnonymousObject", new Anonymous1 { }
             },
             {
                 "path", new Dictionary<string, object>()
@@ -79,19 +83,19 @@ namespace AdaptiveExpressions.Tests
                 "nestedItems",
                 new[]
                 {
-                    new { x = 1 },
-                    new { x = 2 },
-                    new { x = 3 }
+                    new Anonymous2 { x = 1 },
+                    new Anonymous2 { x = 2 },
+                    new Anonymous2 { x = 3 }
                 }
             },
             {
                 "user",
-                new
+                new Anonymous4
                 {
                     income = 100.1,
                     outcome = 120.1,
                     nickname = "John",
-                    lists = new
+                    lists = new Anonymous3
                     {
                         todo = new[]
                         {
@@ -301,10 +305,10 @@ namespace AdaptiveExpressions.Tests
                 }
             },
             {
-                "numberJArray", new JsonArray
+                "numberJArray", new JsonArray(new JsonNode[]
                 {
                     1, 2
-                }
+                })
             }
         };
 
@@ -1339,7 +1343,7 @@ namespace AdaptiveExpressions.Tests
         [MemberData(nameof(Data))]
         public void EvaluateJson(string input, object expected, HashSet<string> expectedRefs)
         {
-            var jsonScope = JsonSerializer.SerializeToNode(scope);
+            var jsonScope = JsonSerializer.SerializeToNode(scope, ParserTestSerializerContext.Default.DictionaryStringObject);
             var parsed = Expression.Parse(input);
             Assert.NotNull(parsed);
 
@@ -1606,5 +1610,47 @@ namespace AdaptiveExpressions.Tests
 
             public string Name { get; set; }
         }
+
+        [JsonSerializable(typeof(Dictionary<string, object>))]
+        [JsonSerializable(typeof(List<object>))]
+        [JsonSerializable(typeof(List<string>))]
+        [JsonSerializable(typeof(List<A>))]
+        [JsonSerializable(typeof(JsonObject))]
+        [JsonSerializable(typeof(List<int>))]
+        [JsonSerializable(typeof(TimexProperty))]
+        [JsonSerializable(typeof(A))]
+        [JsonSerializable(typeof(Anonymous1))]
+        [JsonSerializable(typeof(Anonymous2))]
+        [JsonSerializable(typeof(Anonymous3))]
+        [JsonSerializable(typeof(Anonymous4))]
+        private partial class ParserTestSerializerContext : JsonSerializerContext
+        {
+        }
+
+#pragma warning disable SA1300, SA1516 // Element should begin with upper-case letter
+        private class Anonymous1
+        {
+        }
+
+        private class Anonymous2
+        {
+            public int x { get; set; }
+        }
+
+        private class Anonymous3
+        {
+            public string[] todo { get; set; }
+        }
+
+        private class Anonymous4
+        {
+            public double income { get; set; }
+            public double outcome { get; set; }
+            public string nickname { get; set; }
+            public Anonymous3 lists { get; set; }
+            public string listType { get; set; }
+        }
+
+#pragma warning restore SA1300, SA1516 // Element should begin with upper-case letter
     }
 }

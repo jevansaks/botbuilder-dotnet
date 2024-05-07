@@ -2,9 +2,10 @@
 // Licensed under the MIT License.
 
 using System;
-
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using AdaptiveExpressions.Converters;
 
 namespace AdaptiveExpressions.Properties
@@ -31,6 +32,8 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="ValueExpression"/> class.
         /// </summary>
+        [RequiresDynamicCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
+        [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
         public ValueExpression()
         {
         }
@@ -39,6 +42,8 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="ValueExpression"/> class.
         /// </summary>
         /// <param name="value">value to interpret as object or string expression.</param>
+        [RequiresDynamicCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
+        [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
         public ValueExpression(object value)
             : base(value)
         {
@@ -50,6 +55,35 @@ namespace AdaptiveExpressions.Properties
         /// <param name="lambda">function (data) which evaluates to value.</param>
         public ValueExpression(Func<object, object> lambda)
             : this(Expression.Lambda(lambda))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ValueExpression"/> class.
+        /// </summary>
+        /// <param name="typeInfo">typeInfo for serialization.</param>
+        public ValueExpression(JsonTypeInfo typeInfo)
+            : base(typeInfo)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ValueExpression"/> class.
+        /// </summary>
+        /// <param name="value">value to interpret as object or string expression.</param>
+        /// <param name="typeInfo">typeInfo for serialization.</param>
+        public ValueExpression(object value, JsonTypeInfo typeInfo)
+            : base(value, typeInfo)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ValueExpression"/> class.
+        /// </summary>
+        /// <param name="lambda">function (data) which evaluates to value.</param>
+        /// <param name="typeInfo">typeInfo for serialization.</param>
+        public ValueExpression(Func<object, object> lambda, JsonTypeInfo typeInfo)
+            : this(Expression.Lambda(lambda), typeInfo)
         {
         }
 

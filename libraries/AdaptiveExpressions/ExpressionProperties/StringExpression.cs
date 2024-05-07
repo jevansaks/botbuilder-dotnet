@@ -30,6 +30,7 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="StringExpression"/> class.
         /// </summary>
         public StringExpression()
+            : base(AdaptiveExpressionsSerializerContext.Default.String)
         {
         }
 
@@ -38,7 +39,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expressionOrValue">string to interpret as string or expression to a string.</param>
         public StringExpression(string expressionOrValue)
-            : base(expressionOrValue)
+            : base(expressionOrValue, AdaptiveExpressionsSerializerContext.Default.String)
         {
         }
 
@@ -47,7 +48,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expressionOrValue">value to interpret as a string or expression to a string.</param>
         public StringExpression(JsonNode expressionOrValue)
-            : base(expressionOrValue)
+            : base(expressionOrValue, AdaptiveExpressionsSerializerContext.Default.String)
         {
         }
 
@@ -56,7 +57,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">expression to a string.</param>
         public StringExpression(Expression expression)
-            : base(expression)
+            : base(expression, AdaptiveExpressionsSerializerContext.Default.String)
         {
         }
 

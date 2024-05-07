@@ -31,12 +31,12 @@ namespace AdaptiveExpressions.BuiltinFunctions
             object result = null;
             string error = null;
             object value = null;
-            JsonObject jsonObj = null;
+            JsonNode jsonObj = null;
             if (jsonEntity is string jsonStr)
             {
                 try
                 {
-                    jsonObj = JsonSerializer.Deserialize<JsonObject>(jsonStr);
+                    jsonObj = JsonObject.Parse(jsonStr);
                 }
 #pragma warning disable CA1031 // Do not catch general exception types (we should probably do something about this but ignoring it for now)
                 catch

@@ -19,6 +19,7 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="IntExpression"/> class.
         /// </summary>
         public IntExpression()
+            : base(AdaptiveExpressionsSerializerContext.Default.Int32)
         {
         }
 
@@ -27,7 +28,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="value">value to return.</param>
         public IntExpression(int value)
-            : base(value)
+            : base(value, AdaptiveExpressionsSerializerContext.Default.Int32)
         {
         }
 
@@ -36,7 +37,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">string expression to resolve to an int.</param>
         public IntExpression(string expression)
-            : base(expression)
+            : base(expression, AdaptiveExpressionsSerializerContext.Default.Int32)
         {
         }
 
@@ -45,7 +46,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">expression to resolve to an int.</param>
         public IntExpression(Expression expression)
-            : base(expression)
+            : base(expression, AdaptiveExpressionsSerializerContext.Default.Int32)
         {
         }
 
@@ -63,7 +64,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expressionOrValue">JsonNode to resolve to an int.</param>
         public IntExpression(JsonNode expressionOrValue)
-            : base(expressionOrValue)
+            : base(expressionOrValue, AdaptiveExpressionsSerializerContext.Default.Int32)
         {
         }
 

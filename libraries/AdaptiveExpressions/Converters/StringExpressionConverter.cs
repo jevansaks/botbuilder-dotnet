@@ -14,6 +14,13 @@ namespace AdaptiveExpressions.Converters
     /// </summary>
     public class StringExpressionConverter : JsonConverter<StringExpression>
     {
+        /// <summary>
+        /// Reads and converts the JSON type.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        /// <param name="typeToConvert">The type to convert.</param>
+        /// <param name="options">An object that specifies serialization options to use.</param>
+        /// <returns>The converted value.</returns>
         public override StringExpression Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType == JsonTokenType.String)
@@ -26,6 +33,12 @@ namespace AdaptiveExpressions.Converters
             }
         }
 
+        /// <summary>
+        /// Writes a specified value as JSON.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        /// <param name="value">The value.</param>
+        /// <param name="options">An object that specifies serialization options to use.</param>
         public override void Write(Utf8JsonWriter writer, StringExpression value, JsonSerializerOptions options)
         {
             if (value.ExpressionText != null)

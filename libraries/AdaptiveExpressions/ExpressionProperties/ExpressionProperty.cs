@@ -2,8 +2,10 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.Win32.SafeHandles;
 
 namespace AdaptiveExpressions.Properties
@@ -19,6 +21,8 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="ExpressionProperty{T}"/> class.
         /// </summary>
+        [RequiresDynamicCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
+        [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
         public ExpressionProperty()
         {
         }
@@ -26,9 +30,33 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="ExpressionProperty{T}"/> class.
         /// </summary>
+        /// <param name="typeInfo">typeInfo for serialization.</param>
+        public ExpressionProperty(JsonTypeInfo typeInfo)
+        {
+            ValueJsonTypeInfo = typeInfo;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExpressionProperty{T}"/> class.
+        /// </summary>
         /// <param name="value">An object containing the value to be set.</param>
+        [RequiresDynamicCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
+        [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
         public ExpressionProperty(object value)
         {
+#pragma warning disable CA2214 // Do not call overridable methods in constructors (fixing this would require further redesign of this class and derived types, excluding it for now).
+            SetValue(value);
+#pragma warning restore CA2214 // Do not call overridable methods in constructors
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExpressionProperty{T}"/> class.
+        /// </summary>
+        /// <param name="value">An object containing the value to be set.</param>
+        /// <param name="typeInfo">JsonTypeInfo for serialization.</param>
+        public ExpressionProperty(object value, JsonTypeInfo typeInfo)
+        {
+            ValueJsonTypeInfo = typeInfo;
 #pragma warning disable CA2214 // Do not call overridable methods in constructors (fixing this would require further redesign of this class and derived types, excluding it for now).
             SetValue(value);
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
@@ -45,6 +73,14 @@ namespace AdaptiveExpressions.Properties
 #pragma warning restore CA1721 // Property names should not match get methods
 
         /// <summary>
+        /// Gets the JsonTypeInfo for serializing this type.
+        /// </summary>
+        /// <value>
+        /// The JsonTypeInfo for serializing this type.
+        /// </value>
+        public JsonTypeInfo ValueJsonTypeInfo { get; private set; }
+
+        /// <summary>
         /// Gets or sets the expression text to evaluate to get the value.
         /// </summary>
         /// <value>
@@ -57,18 +93,24 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="value">A value to convert.</param>
 #pragma warning disable CA2225 // Operator overloads have named alternates
+        [RequiresUnreferencedCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
+        [RequiresDynamicCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
         public static implicit operator ExpressionProperty<T>(T value) => new ExpressionProperty<T>(value);
 
         /// <summary>
         /// Converts a string value to an ExpressionProperty instance.
         /// </summary>
         /// <param name="expression">The string value to convert.</param>
+        [RequiresUnreferencedCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
+        [RequiresDynamicCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
         public static implicit operator ExpressionProperty<T>(string expression) => new ExpressionProperty<T>(expression);
 
         /// <summary>
         /// Converts an Expression instance to an ExpressionProperty instance.
         /// </summary>
         /// <param name="expression">The Expression instance to convert.</param>
+        [RequiresUnreferencedCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
+        [RequiresDynamicCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
         public static implicit operator ExpressionProperty<T>(Expression expression) => new ExpressionProperty<T>(expression);
 #pragma warning restore CA2225 // Operator overloads have named alternates
 
@@ -111,7 +153,15 @@ namespace AdaptiveExpressions.Properties
             }
 
             // return expression for json object
-            _expression = Expression.Parse($"json({JsonSerializer.Serialize(this.Value)}");
+            if (ValueJsonTypeInfo != null)
+            {
+                _expression = Expression.Parse($"json({JsonSerializer.Serialize(this.Value, ValueJsonTypeInfo)}");
+            }
+            else
+            {
+                _expression = Expression.Parse($"json({JsonSerializer.Serialize(this.Value)}");
+            }
+
             return _expression;
         }
 
@@ -224,6 +274,8 @@ namespace AdaptiveExpressions.Properties
         /// </remarks>
         /// <param name="result">result to convert to object of type T.</param>
         /// <returns>object of type T.</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AOT callers will pass TypeInfo")]
+        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AOT callers will pass TypeInfo")]
         protected virtual T ConvertObject(object result)
         {
             if (result is T)
@@ -234,6 +286,18 @@ namespace AdaptiveExpressions.Properties
             if (result == null)
             {
                 return default(T);
+            }
+
+            if (result is JsonNode node)
+            {
+                if (ValueJsonTypeInfo != null)
+                {
+                    return (T)JsonSerializer.Deserialize(node, ValueJsonTypeInfo);
+                }
+                else
+                {
+                    return JsonSerializer.Deserialize<T>(node);
+                }
             }
 
             return JsonSerializer.SerializeToNode(result).Deserialize<T>();

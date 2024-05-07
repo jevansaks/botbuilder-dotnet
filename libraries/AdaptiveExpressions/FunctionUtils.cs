@@ -412,6 +412,12 @@ namespace AdaptiveExpressions
             return isList;
         }
 
+        /// <summary>
+        /// Get the count from a List-like thing.
+        /// </summary>
+        /// <param name="list">The list.</param>
+        /// <returns>The count.</returns>
+        /// <exception cref="InvalidOperationException">If the list is not a list.</exception>
         public static int GetListCount(IEnumerable list)
         {
             if (list is IList listValue)
@@ -426,6 +432,12 @@ namespace AdaptiveExpressions
             throw new InvalidOperationException();
         }
 
+        /// <summary>
+        /// Get the count from a List-like thing.
+        /// </summary>
+        /// <param name="list">The list.</param>
+        /// <param name="value">The value to append.</param>
+        /// <exception cref="InvalidOperationException">If the list is not a list.</exception>
         public static void AppendToList(IEnumerable list, object value)
         {
             if (list is IList ilist)
@@ -442,8 +454,19 @@ namespace AdaptiveExpressions
 
                 jarray.Add(jvalue);
             }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
 
+        /// <summary>
+        /// Get the count from a List-like thing.
+        /// </summary>
+        /// <param name="list">The list.</param>
+        /// <param name="idx">The index to set.</param>
+        /// <param name="value">The new value.</param>
+        /// <exception cref="InvalidOperationException">If the list is not a list.</exception>
         public static void SetIndex(IEnumerable list, int idx, object value)
         {
             if (list is IList ilist)
@@ -459,6 +482,10 @@ namespace AdaptiveExpressions
                 }
 
                 jarray[idx] = jvalue;
+            }
+            else
+            {
+                throw new InvalidOperationException();
             }
         }
 
@@ -842,14 +869,24 @@ namespace AdaptiveExpressions
         /// <param name="obj1">First object.</param>
         /// <param name="obj2">Second object.</param>
         /// <returns>If two objects are equal.</returns>
-        [RequiresDynamicCode("Uses JsonSerializer")]
-        [RequiresUnreferencedCode("Uses JsonSerializer")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AdaptiveExpressions works in AOT when passed JsonNode")]
+        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AdaptiveExpressions works in AOT when passed JsonNode")]
         public static bool CommonEquals(object obj1, object obj2)
         {
             if (obj1 == null || obj2 == null)
             {
                 // null will only equals to null
                 return obj1 == null && obj2 == null;
+            }
+
+            if (obj1 is JsonValue jobj1 && obj2 is JsonValue jobj2)
+            {
+                return JsonValue.DeepEquals(jobj1, jobj2);
+            }
+
+            if (!JsonSerializer.IsReflectionEnabledByDefault)
+            {
+                Environment.FailFast("Unsupported for AOT scenarios");
             }
 
             obj1 = ResolveValue(obj1);
@@ -1479,7 +1516,7 @@ namespace AdaptiveExpressions
             }
             else if (timexExpr is JsonObject jTimex)
             {
-                parsed = jTimex.Deserialize<TimexProperty>();
+                parsed = jTimex.Deserialize(AdaptiveExpressionsSerializerContext.Default.TimexProperty);
             }
             else if (timexExpr is string ts)
             {
@@ -1504,6 +1541,8 @@ namespace AdaptiveExpressions
             return Encoding.UTF8.GetBytes(strToConvert);
         }
 
+        [RequiresDynamicCode("Calls JsonSerializer.SerializeToNode without a JsonTypeInfo")]
+        [RequiresUnreferencedCode("Calls JsonSerializer.SerializeToNode without a JsonTypeInfo")]
         internal static JsonNode ConvertToJsonNode(object value)
         {
             return value == null ? null : JsonSerializer.SerializeToNode(value);
@@ -1511,6 +1550,8 @@ namespace AdaptiveExpressions
 
         // collection functions
 
+        [SuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AOT aware callers will not need us to call JsonSerializer")]
+        [SuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AOT aware callers will not need us to call JsonSerializer")]
         internal static EvaluateExpressionDelegate SortBy(bool isDescending)
            => (expression, state, options) =>
            {
@@ -1521,7 +1562,7 @@ namespace AdaptiveExpressions
 
                if (error == null)
                {
-                   if (TryParseList(arr, out var list))
+                   if (TryAsList(arr, out var list))
                    {
                        if (expression.Children.Length == 1)
                        {
@@ -1536,8 +1577,12 @@ namespace AdaptiveExpressions
                        }
                        else
                        {
-                           var x = JsonSerializer.SerializeToNode(list);
-                           var jsonArray = x.AsArray();
+                           JsonArray jsonArray = list as JsonArray;
+                           if (jsonArray == null)
+                           {
+                               jsonArray = JsonSerializer.SerializeToNode(list).AsArray();
+                           }
+
                            var propertyNameExpression = expression.Children[1];
                            string propertyName;
                            (propertyName, error) = propertyNameExpression.TryEvaluate<string>(state, options);
@@ -1605,11 +1650,11 @@ namespace AdaptiveExpressions
 
             try
             {
-                var parsed = JsonSerializer.Deserialize<DateTime>($"\"{timeStamp}\"");
+                var parsed = JsonSerializer.Deserialize($"\"{timeStamp}\"", AdaptiveExpressionsSerializerContext.Default.DateTime);
 
                 (result, error) = transform != null ? transform(parsed) : (parsed, null);
             }
-            catch (JsonException e)
+            catch (JsonException)
             {
                 error = $"{timeStamp} is not standard ISO format.";
             }

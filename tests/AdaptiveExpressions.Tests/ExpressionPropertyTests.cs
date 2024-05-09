@@ -396,7 +396,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.ValueExpression).ToString());
             (result, error) = val.TryGetValue(data);
 #pragma warning disable IL2026, IL3050
-            Assert.Equal(JsonSerializer.Serialize(data.test, TestSerializerContext.Default.Anonymous2), JsonSerializer.Serialize(result));
+            Assert.Equal(JsonSerializer.Serialize(data.test, TestSerializerContext.Default.Anonymous2), JsonSerializer.Serialize(result, TestSerializerContext.Default.Options));
 #pragma warning restore IL2026, IL3050
             Assert.Null(error);
 
@@ -406,7 +406,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(JsonSerializer.Serialize(data.test, TestSerializerContext.Default.Anonymous2), RoundTripSerialize(val, TestSerializerContext.Default.ValueExpression).ToString());
             (result, error) = val.TryGetValue(data);
 #pragma warning disable IL2026, IL3050
-            Assert.Equal(JsonSerializer.Serialize(data.test, TestSerializerContext.Default.Anonymous2), JsonSerializer.Serialize(result));
+            Assert.Equal(JsonSerializer.Serialize(data.test, TestSerializerContext.Default.Anonymous2), JsonSerializer.Serialize(result, TestSerializerContext.Default.Options));
 #pragma warning restore IL2026, IL3050
             Assert.Null(error);
 
@@ -756,7 +756,21 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
         [JsonSerializable(typeof(List<string>))]
         [JsonSerializable(typeof(List<Foo>))]
         [JsonSerializable(typeof(ImplicitCastTest))]
-        [JsonSourceGenerationOptions(WriteIndented = true)]
+        [JsonSourceGenerationOptions(
+            WriteIndented = true,
+#pragma warning disable SA1118 // Parameter should not span multiple lines
+            Converters =
+            [
+                typeof(ExpressionPropertyConverter<short>),
+                typeof(ExpressionPropertyConverter<ushort>),
+                typeof(ExpressionPropertyConverter<uint>),
+                typeof(ExpressionPropertyConverter<ulong>),
+                typeof(ExpressionPropertyConverter<long>),
+                typeof(ExpressionPropertyConverter<double>),
+                typeof(ExpressionPropertyConverter<Foo>),
+                typeof(EnumExpressionConverter<TestEnum>),
+            ])]
+#pragma warning restore SA1118 // Parameter should not span multiple lines
         private partial class TestSerializerContext : JsonSerializerContext
         {
         }

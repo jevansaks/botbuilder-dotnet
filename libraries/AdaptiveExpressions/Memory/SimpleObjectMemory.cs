@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
@@ -16,6 +17,8 @@ namespace AdaptiveExpressions.Memory
     /// <summary>
     /// Simple implement of <see cref="IMemory"/>.
     /// </summary>
+    [RequiresDynamicCode("SimpleObjectMemory requires reflection and is not AOT compatible")]
+    [RequiresUnreferencedCode("SimpleObjectMemory requires reflection and is not AOT compatible")]
     public class SimpleObjectMemory : IMemory
     {
         private object _memory = null;

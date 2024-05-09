@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using AdaptiveExpressions.Converters;
@@ -13,6 +14,8 @@ namespace AdaptiveExpressions.Properties
     /// </summary>
     /// <typeparam name="T">type of enum.</typeparam>
     /// <remarks>String values are always interpreted as an enum, unless it has '=' prefix in which case it is evaluated as a expression.</remarks>
+    [RequiresDynamicCode("EnumExpression is not AOT compatible yet")]
+    [RequiresUnreferencedCode("EnumExpression is not AOT compatible yet")]
     public class EnumExpression<T> : ExpressionProperty<T>
         where T : struct
     {

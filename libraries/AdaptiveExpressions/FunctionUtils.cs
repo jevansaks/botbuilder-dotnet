@@ -1541,10 +1541,12 @@ namespace AdaptiveExpressions
             return Encoding.UTF8.GetBytes(strToConvert);
         }
 
-        [RequiresDynamicCode("Calls JsonSerializer.SerializeToNode without a JsonTypeInfo")]
-        [RequiresUnreferencedCode("Calls JsonSerializer.SerializeToNode without a JsonTypeInfo")]
         internal static JsonNode ConvertToJsonNode(object value)
         {
+            /* TODO: A couple options: 
+             * 1. Don't support this (require TryEvaluate to return a small set of known types), 
+             * 2. Make ConvertToJsonNode and similar calls a method on IMemory so callers have to do the conversion
+            */
             return value == null ? null : JsonSerializer.SerializeToNode(value);
         }
 

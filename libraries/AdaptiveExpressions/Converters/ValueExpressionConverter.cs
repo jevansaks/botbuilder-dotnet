@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using AdaptiveExpressions.Properties;
 
 namespace AdaptiveExpressions.Converters
@@ -31,13 +32,14 @@ namespace AdaptiveExpressions.Converters
         /// <returns>The converted value.</returns>
         public override ValueExpression Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
+            var typeInfo = options.GetTypeInfo(typeToConvert);
             if (reader.TokenType == JsonTokenType.String)
             {
-                return new ValueExpression(reader.GetString());
+                return new ValueExpression(reader.GetString(), typeInfo);
             }
             else
             {
-                return new ValueExpression(JsonValue.Parse(ref reader));
+                return new ValueExpression(JsonValue.Parse(ref reader), typeInfo);
             }
         }
 
@@ -47,8 +49,8 @@ namespace AdaptiveExpressions.Converters
         /// <param name="writer">The writer.</param>
         /// <param name="value">The value.</param>
         /// <param name="options">An object that specifies serialization options to use.</param>
-        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
-        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "<Pending>")]
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AOT callers will ensure we have a JsonTypeInfo")]
+        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AOT callers will ensure we have a JsonTypeInfo")]
         public override void Write(Utf8JsonWriter writer, ValueExpression value, JsonSerializerOptions options)
         {
             if (value.ExpressionText != null)

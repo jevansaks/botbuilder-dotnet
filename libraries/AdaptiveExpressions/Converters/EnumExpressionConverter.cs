@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -14,6 +15,8 @@ namespace AdaptiveExpressions.Converters
     /// Converter which allows json to be expression to object or static object.
     /// </summary>
     /// <typeparam name="T">The enum type to construct.</typeparam>
+    [RequiresDynamicCode("EnumExpression is not AOT compatible yet")]
+    [RequiresUnreferencedCode("EnumExpression is not AOT compatible yet")]
     public class EnumExpressionConverter<T> : JsonConverter<EnumExpression<T>>
         where T : struct
     {
@@ -49,6 +52,8 @@ namespace AdaptiveExpressions.Converters
         /// <param name="writer">The writer.</param>
         /// <param name="value">The value.</param>
         /// <param name="options">An object that specifies serialization options to use.</param>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AOT callers will ensure we have a JsonTypeInfo")]
+        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AOT callers will ensure we have a JsonTypeInfo")]
         public override void Write(Utf8JsonWriter writer, EnumExpression<T> value, JsonSerializerOptions options)
         {
             if (value.ExpressionText != null)

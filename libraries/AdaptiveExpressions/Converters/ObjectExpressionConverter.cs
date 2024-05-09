@@ -26,13 +26,14 @@ namespace AdaptiveExpressions.Converters
         /// <returns>The converted value.</returns>
         public override ObjectExpression<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
+            var typeInfo = options.GetTypeInfo(typeToConvert);
             if (reader.TokenType == JsonTokenType.String)
             {
-                return new ObjectExpression<T>(reader.GetString());
+                return new ObjectExpression<T>(reader.GetString(), typeInfo);
             }
             else
             {
-                return new ObjectExpression<T>(JsonValue.Parse(ref reader));
+                return new ObjectExpression<T>(JsonValue.Parse(ref reader), typeInfo);
             }
         }
 

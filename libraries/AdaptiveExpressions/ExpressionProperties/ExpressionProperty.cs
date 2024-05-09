@@ -132,6 +132,8 @@ namespace AdaptiveExpressions.Properties
         /// This will return the existing expression or ConstantExpression(Value) if the value is non-complex type.
         /// </summary>
         /// <returns>expression.</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AOT callers will ensure we have a JsonTypeInfo")]
+        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AOT callers will ensure we have a JsonTypeInfo")]
         public virtual Expression ToExpression()
         {
             if (_expression != null)

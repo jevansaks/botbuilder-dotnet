@@ -42,6 +42,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                     return (null, err);
                 }
 
+                // TODO: I propose IMemory has a new overload "CreateSubMemory" for this
                 return FunctionUtils.WrapGetValue(MemoryFactory.Create(newScope), path, options);
             }
         }

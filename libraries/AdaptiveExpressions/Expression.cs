@@ -631,6 +631,7 @@ namespace AdaptiveExpressions
                     return (default(T), error);
                 }
 
+                // TODO: Per proposal, this should be a failfast or call back to IMemory
                 return (JsonSerializer.Deserialize<T>(JsonSerializer.SerializeToNode(result)), null);
             }
 #pragma warning disable CA1031 // Do not catch general exception types (just return an error)

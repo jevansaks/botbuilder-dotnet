@@ -5,6 +5,16 @@ using System;
 
 namespace AdaptiveExpressions.Memory
 {
+    // I propose the following:
+    // * Document the set of allowed input/output types for IMemory to simplify the handling within the evaluation functions
+    //  -OR-
+    // * Allow arbitrary types but add the ConvertToJsonNode & ConvertToList functions to IMemory so that callers do the conversion
+    //
+    // We still need some new helper methods:
+    // * Accessor needs to create an IMemory object from a returned object, so add IMemory.CreateMemoryFrom(object)
+    // * FunctionUtils.SetIndex, AppendToList
+    // * FunctionUtils.LambdaEvaluator -- creates a SimpleObjectMemory
+
     /// <summary>
     /// Memory interface.
     /// </summary>

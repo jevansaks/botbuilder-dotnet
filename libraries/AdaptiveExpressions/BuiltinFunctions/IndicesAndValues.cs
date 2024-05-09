@@ -21,7 +21,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         {
         }
 
-        private static (object, string) Evaluator(Expression expression, object state, Options options)
+        private static (object, string) Evaluator(Expression expression, Memory.IMemory state, Options options)
         {
             object result = null;
             string error;

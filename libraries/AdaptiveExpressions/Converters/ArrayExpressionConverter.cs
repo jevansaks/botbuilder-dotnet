@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -15,6 +17,8 @@ namespace AdaptiveExpressions.Converters
     /// Converter which allows json to be expression to object or static object.
     /// </summary>
     /// <typeparam name="T">The type of the items of the array.</typeparam>
+    [RequiresDynamicCode("ArrayExpression is not AOT compatible yet")]
+    [RequiresUnreferencedCode("ArrayExpression is not AOT compatible yet")]
     public class ArrayExpressionConverter<T> : JsonConverter<ArrayExpression<T>>
     {
         private JsonTypeInfo<T> _valueTypeInfo;
@@ -52,7 +56,7 @@ namespace AdaptiveExpressions.Converters
             {
                 // NOTE: This does not use the serializer because even we could deserialize here
                 // expression evaluation has no idea about converters.
-                return new ArrayExpression<T>(JsonValue.Parse(ref reader) /* TODO: , _valueTypeInfo */);
+                return new ArrayExpression<T>(JsonValue.Parse(ref reader));
             }
         }
 
@@ -62,6 +66,8 @@ namespace AdaptiveExpressions.Converters
         /// <param name="writer">The writer.</param>
         /// <param name="value">The value.</param>
         /// <param name="options">An object that specifies serialization options to use.</param>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AOT callers will ensure we have a JsonTypeInfo")]
+        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AOT callers will ensure we have a JsonTypeInfo")]
         public override void Write(Utf8JsonWriter writer, ArrayExpression<T> value, JsonSerializerOptions options)
         {
             if (value.ExpressionText != null)

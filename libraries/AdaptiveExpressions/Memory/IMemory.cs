@@ -42,5 +42,13 @@ namespace AdaptiveExpressions.Memory
         /// </summary>
         /// <returns>A string indicates the version.</returns>
         string Version();
+
+        /// <summary>
+        /// Create an IMemory from an object that was returned from this IMemory's TryGetValue.
+        /// If upgrading from old AdaptiveExpression implementations, return MemoryFactory.Create(value).
+        /// </summary>
+        /// <param name="value">object to wrap.</param>
+        /// <returns>IMemory.</returns>
+        IMemory CreateMemoryFrom(object value);
     }
 }

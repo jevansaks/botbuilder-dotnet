@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using AdaptiveExpressions.Properties;
 
@@ -8,6 +9,8 @@ namespace AdaptiveExpressions.Memory
     /// <summary>
     /// Internal class to duck type IMemory interface via reflection.
     /// </summary>
+    [RequiresDynamicCode("ReflectionMemory requires reflection and is not AOT compatible")]
+    [RequiresUnreferencedCode("ReflectionMemory requires reflection and is not AOT compatible")]
     internal class ReflectionMemory : IMemory
     {
         // cache of type => either Methods or null 
@@ -43,6 +46,11 @@ namespace AdaptiveExpressions.Memory
             }
 
             return result;
+        }
+
+        public IMemory CreateMemoryFrom(object value)
+        {
+            return MemoryFactory.Create(value);
         }
 
         public string Version()

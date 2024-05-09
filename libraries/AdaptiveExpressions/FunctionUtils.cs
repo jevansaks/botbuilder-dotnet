@@ -438,6 +438,8 @@ namespace AdaptiveExpressions
         /// <param name="list">The list.</param>
         /// <param name="value">The value to append.</param>
         /// <exception cref="InvalidOperationException">If the list is not a list.</exception>
+        [RequiresDynamicCode("Uses JsonSerializer on unknown types")]
+        [RequiresUnreferencedCode("uses JsonSerializer on unknown types")]
         public static void AppendToList(IEnumerable list, object value)
         {
             if (list is IList ilist)
@@ -467,6 +469,8 @@ namespace AdaptiveExpressions
         /// <param name="idx">The index to set.</param>
         /// <param name="value">The new value.</param>
         /// <exception cref="InvalidOperationException">If the list is not a list.</exception>
+        [RequiresDynamicCode("SetIndex uses JsonSerializer on unknown types")]
+        [RequiresUnreferencedCode("SetIndex uses JsonSerializer on unknown types")]
         public static void SetIndex(IEnumerable list, int idx, object value)
         {
             if (list is IList ilist)

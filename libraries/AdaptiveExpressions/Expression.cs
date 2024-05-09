@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -502,6 +503,8 @@ namespace AdaptiveExpressions
         /// </param>
         /// <param name="options">Options used in the evaluation. </param>
         /// <returns>Computed value and an error string.  If the string is non-null, then there was an evaluation error.</returns>
+        [RequiresUnreferencedCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
+        [RequiresDynamicCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
         public (object value, string error) TryEvaluate(object state, Options options = null)
             => this.TryEvaluate<object>(MemoryFactory.Create(state), options);
 
@@ -527,6 +530,8 @@ namespace AdaptiveExpressions
         /// </param>
         /// <param name="options">Options used in the evaluation. </param>
         /// <returns>Computed value and an error string.  If the string is non-null, then there was an evaluation error.</returns>
+        [RequiresUnreferencedCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
+        [RequiresDynamicCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
         public (T value, string error) TryEvaluate<T>(object state, Options options = null)
         => this.TryEvaluate<T>(MemoryFactory.Create(state), options);
 

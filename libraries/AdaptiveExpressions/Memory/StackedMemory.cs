@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AdaptiveExpressions.Properties;
 
 namespace AdaptiveExpressions.Memory
@@ -79,6 +80,13 @@ namespace AdaptiveExpressions.Memory
         public void SetValue(string path, object value)
         {
             throw new InvalidOperationException($"Can't set value to {path}, stacked memory is read-only");
+        }
+
+        /// <inheritdoc/>
+        public IMemory CreateMemoryFrom(object value)
+        {
+            var array = ToArray();
+            return array.Last().CreateMemoryFrom(value);
         }
 
         /// <summary>

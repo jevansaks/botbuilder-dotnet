@@ -47,16 +47,12 @@ namespace AdaptiveExpressions.Memory
                 return false;
             }
 
-            var parts = path.Split(".[]".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                            .Select(x => x.Trim('\'', '"'))
-                            .ToArray();
-
             var curScope = _memory;
 
-            foreach (var part in parts)
+            foreach (var part in new SimplePathEnumerator(path))
             {
                 string error = null;
-                if (int.TryParse(part, out var idx) && FunctionUtils.TryParseList(curScope, out var li))
+                if (part.Index is int idx && FunctionUtils.TryParseList(curScope, out var li))
                 {
                     (value, error) = FunctionUtils.AccessIndex(li, idx);
                     if (error != null)
@@ -66,7 +62,7 @@ namespace AdaptiveExpressions.Memory
                 }
                 else
                 {
-                    if (!FunctionUtils.TryAccessProperty(curScope, part, out value))
+                    if (!FunctionUtils.TryAccessProperty(curScope, part.Part, out value))
                     {
                         return false;
                     }
@@ -101,79 +97,87 @@ namespace AdaptiveExpressions.Memory
                 return;
             }
 
-            var parts = path.Split(".[]".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                            .Select(x => x.Trim('\'', '"'))
-                            .ToArray();
-
             var curScope = _memory;
             var curPath = string.Empty; // valid path so far
             string error = null;
 
             // find the 2nd last value, the container
-            for (var i = 0; i < parts.Length - 1; i++)
+            foreach (var part in new SimplePathEnumerator(path))
             {
-                if (int.TryParse(parts[i], out var index) && FunctionUtils.TryParseList(curScope, out var li))
+                // For all parts until the list, evaluate as path
+                if (!part.IsLast)
                 {
-                    curPath += $"[{parts[i]}]";
-                    (curScope, error) = FunctionUtils.AccessIndex(li, index);
-                }
-                else
-                {
-                    curPath += $".{parts[i]}";
-                    if (FunctionUtils.TryAccessProperty(curScope, parts[i], out var newScope))
+                    if (part.Index is int index && FunctionUtils.TryParseList(curScope, out var li))
                     {
-                        curScope = newScope;
+                        curPath += $"[{part.Part}]";
+                        (curScope, error) = FunctionUtils.AccessIndex(li, index);
                     }
                     else
+                    {
+                        curPath += $".{part.Part}";
+                        if (FunctionUtils.TryAccessProperty(curScope, part.Part, out var newScope))
+                        {
+                            curScope = newScope;
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+
+                    if (error != null || curScope == null)
                     {
                         return;
                     }
                 }
-
-                if (error != null || curScope == null)
+                else
                 {
-                    return;
-                }
-            }
+                    // set the last value
+                    if (part.Index is int idx)
+                    {
+                        if (FunctionUtils.TryAsList(curScope, out var li))
+                        {
+                            var count = FunctionUtils.GetListCount(li);
+                            if (idx > count)
+                            {
+                                error = $"{idx} index out of range";
+                            }
+                            else if (idx == count)
+                            {
+                                // expand for one
+                                FunctionUtils.AppendToList(li, value);
+                            }
+                            else
+                            {
+                                FunctionUtils.SetIndex(li, idx, value);
+                            }
+                        }
+                        else
+                        {
+                            error = $"set value for an index to a non-list object";
+                        }
 
-            // set the last value
-            if (int.TryParse(parts.Last(), out var idx))
-            {
-                if (FunctionUtils.TryAsList(curScope, out var li))
-                {
-                    var count = FunctionUtils.GetListCount(li);
-                    if (idx > count)
-                    {
-                        error = $"{idx} index out of range";
-                    }
-                    else if (idx == count)
-                    {
-                        // expand for one
-                        FunctionUtils.AppendToList(li, value);
+                        if (error != null)
+                        {
+                            return;
+                        }
                     }
                     else
                     {
-                        FunctionUtils.SetIndex(li, idx, value);
+                        (_, error) = SetProperty(curScope, part.Part, value);
+                        if (error != null)
+                        {
+                            return;
+                        }
                     }
                 }
-                else
-                {
-                    error = $"set value for an index to a non-list object";
-                }
+            }
+        }
 
-                if (error != null)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                (_, error) = SetProperty(curScope, parts.Last(), value);
-                if (error != null)
-                {
-                    return;
-                }
-            }
+        /// <inheritdoc/>
+        public IMemory CreateMemoryFrom(object value)
+        {
+            return MemoryFactory.Create(value);
         }
 
         /// <summary>

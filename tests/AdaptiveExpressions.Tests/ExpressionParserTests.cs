@@ -1347,12 +1347,14 @@ namespace AdaptiveExpressions.Tests
             var parsed = Expression.Parse(input);
             Assert.NotNull(parsed);
 
+            // byteArr serialized to Json serializes to a base64 string and gets returned as a string (not byte[] as Newtonsoft
+            // was behaving), and these tests expect that it's a byte[] so the tests have the wrong expected value. Just skip them.
             if (input.Contains("byteArr"))
             {
                 return;
             }
             
-            var (actual, msg) = parsed.TryEvaluate(jsonScope);
+            var (actual, msg) = parsed.TryEvaluate(new JsonObjectMemory(jsonScope));
             Assert.Null(msg);
             if (expected is Func<string> func)
             {

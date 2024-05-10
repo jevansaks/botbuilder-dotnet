@@ -58,6 +58,14 @@ namespace AdaptiveExpressions.BuiltinFunctions
                         {
                             result = System.Text.Encoding.UTF8.GetString(byteArr);
                         }
+                        else if (args[0] is bool)
+                        {
+                            result = ((bool)args[0]) ? "true" : "false";
+                        }
+                        else if (args[0] == null)
+                        {
+                            result = "null";
+                        }
                         else
                         {
                             result = state.JsonSerializeToString(args[0]).TrimStart('"').TrimEnd('"');

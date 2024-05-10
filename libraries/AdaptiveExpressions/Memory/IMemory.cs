@@ -18,6 +18,13 @@ namespace AdaptiveExpressions.Memory
     // * FunctionUtils.SetIndex, AppendToList
     // * FunctionUtils.LambdaEvaluator -- creates a SimpleObjectMemory
 
+    // Type system rules:
+    // * Primitive types required for IMemory:
+    //    - 
+    // All values returned from IMemory.TryGetValue are passed around opaquely except for:
+    // * Primitive types are unboxed and manipulated by expressions
+    // * Functions that apply to lists will serialize to JsonNode for copying
+
     /// <summary>
     /// Memory interface.
     /// </summary>

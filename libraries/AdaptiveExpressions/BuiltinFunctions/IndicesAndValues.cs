@@ -35,7 +35,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                     var tempList = new List<object>();
                     for (var i = 0; i < list.Count; i++)
                     {
-                        tempList.Add(new { index = i, value = list[i] });
+                        tempList.Add(MakeIndexEntry<object>(i, list[i]));
                     }
 
                     result = tempList;
@@ -62,10 +62,19 @@ namespace AdaptiveExpressions.BuiltinFunctions
             var tempList = new List<object>();
             foreach (var item in jobj)
             {
-                tempList.Add(new { index = item.Key, value = item.Value });
+                tempList.Add(MakeIndexEntry<JsonNode>(item.Key, item.Value));
             }
 
             return tempList;
+        }
+
+        private static Dictionary<string, TValue> MakeIndexEntry<TValue>(TValue index, TValue value)
+        {
+            return new Dictionary<string, TValue>
+            {
+                { "index", index },
+                { "value", value }
+            };
         }
     }
 }

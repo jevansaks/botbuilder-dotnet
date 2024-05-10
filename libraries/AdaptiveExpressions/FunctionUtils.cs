@@ -1141,9 +1141,10 @@ namespace AdaptiveExpressions
                         isPresent = true;
                     }
                 }
-                else if (instance is JsonObject jobj)
+                else if (instance is IDictionary<string, JsonNode> jdict)
                 {
-                    var result = jobj.FirstOrDefault(x => x.Key.Equals(property, StringComparison.OrdinalIgnoreCase));
+                    // This case covers JsonObject as well as the result of IndicesAndValues' listification
+                    var result = jdict.FirstOrDefault(x => x.Key.Equals(property, StringComparison.OrdinalIgnoreCase));
                     value = result.Value;
                     isPresent = result.Key != null;
                 }
@@ -1417,13 +1418,12 @@ namespace AdaptiveExpressions
 
         internal static List<object> Object2KVPairList(JsonObject jobj)
         {
-            var tempList = new List<object>();
-            foreach (var item in jobj)
-            {
-                tempList.Add(new { key = item.Key, value = item.Value });
-            }
-
-            return tempList;
+            return jobj.ToList().ConvertAll<object>(
+                x => new Dictionary<string, JsonNode>
+                    {
+                        { "key", x.Key },
+                        { "value", x.Value }
+                    });
         }
 
         internal static void ValidateLambdaExpression(Expression expression)

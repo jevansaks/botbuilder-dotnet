@@ -35,6 +35,10 @@ namespace AdaptiveExpressions.Properties
         public ExpressionProperty(JsonTypeInfo typeInfo)
         {
             ValueJsonTypeInfo = typeInfo;
+            if (ValueJsonTypeInfo.Type != typeof(T))
+            {
+                throw new InvalidOperationException("Mismatched TypeInfo");
+            }
         }
 
         /// <summary>
@@ -58,6 +62,11 @@ namespace AdaptiveExpressions.Properties
         public ExpressionProperty(object value, JsonTypeInfo typeInfo)
         {
             ValueJsonTypeInfo = typeInfo;
+            if (ValueJsonTypeInfo.Type != typeof(T))
+            {
+                throw new InvalidOperationException("Mismatched TypeInfo");
+            }
+
 #pragma warning disable CA2214 // Do not call overridable methods in constructors (fixing this would require further redesign of this class and derived types, excluding it for now).
             SetValue(value);
 #pragma warning restore CA2214 // Do not call overridable methods in constructors

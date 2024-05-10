@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization.Metadata;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -77,6 +78,35 @@ namespace AdaptiveExpressions.Properties
         [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
         public ArrayExpression(JsonNode expressionOrValue)
             : base(expressionOrValue)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ArrayExpression{T}"/> class.
+        /// </summary>
+        /// <param name="typeInfo">typeInfo.</param>
+        public ArrayExpression(JsonTypeInfo typeInfo)
+            : base(typeInfo)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ArrayExpression{T}"/> class.
+        /// </summary>
+        /// <param name="value">collection of (T).</param>
+        /// <param name="typeInfo">typeInfo.</param>
+        public ArrayExpression(List<T> value, JsonTypeInfo typeInfo)
+            : base(value, typeInfo)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ArrayExpression{T}"/> class.
+        /// </summary>
+        /// <param name="value">collection of (T).</param>
+        /// <param name="typeInfo">typeInfo.</param>
+        public ArrayExpression(JsonNode value, JsonTypeInfo typeInfo)
+            : base(value, typeInfo)
         {
         }
 

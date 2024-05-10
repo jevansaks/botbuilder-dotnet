@@ -26,7 +26,7 @@ namespace AdaptiveExpressions.Converters
         /// <returns>The converted value.</returns>
         public override ObjectExpression<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            var typeInfo = options.GetTypeInfo(typeToConvert);
+            var typeInfo = options.GetTypeInfo(typeof(T));
             if (reader.TokenType == JsonTokenType.String)
             {
                 return new ObjectExpression<T>(reader.GetString(), typeInfo);
@@ -43,8 +43,6 @@ namespace AdaptiveExpressions.Converters
         /// <param name="writer">The writer.</param>
         /// <param name="value">The value.</param>
         /// <param name="options">An object that specifies serialization options to use.</param>
-        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
-        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "<Pending>")]
         public override void Write(Utf8JsonWriter writer, ObjectExpression<T> value, JsonSerializerOptions options)
         {
             if (value.ExpressionText != null)
@@ -53,14 +51,7 @@ namespace AdaptiveExpressions.Converters
             }
             else
             {
-                if (value.ValueJsonTypeInfo != null)
-                {
-                    JsonSerializer.SerializeToNode(value.Value, value.ValueJsonTypeInfo).AsValue().WriteTo(writer, options);
-                }
-                else
-                {
-                    JsonValue.Create(value.Value).WriteTo(writer, options);
-                }
+                FunctionUtils.SerializeValueToWriter(writer, value.Value, value.ValueJsonTypeInfo, options);
             }
         }
     }

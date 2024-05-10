@@ -40,7 +40,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
                     foreach (var item in operands)
                     {
-                        if (FunctionUtils.CommonEquals(item, args[1]))
+                        if (FunctionUtils.CommonEquals(item, args[1], state))
                         {
                             found = true;
                             break;

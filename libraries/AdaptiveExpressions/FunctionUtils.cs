@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization.Metadata;
 using AdaptiveExpressions.Memory;
 using Json.More;
 using Microsoft.Recognizers.Text.DataTypes.TimexExpression;
@@ -971,10 +972,9 @@ namespace AdaptiveExpressions
         /// </summary>
         /// <param name="obj1">First object.</param>
         /// <param name="obj2">Second object.</param>
+        /// <param name="state">IMemory to delegate serialization to if needed.</param>
         /// <returns>If two objects are equal.</returns>
-        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AdaptiveExpressions works in AOT when passed JsonNode")]
-        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AdaptiveExpressions works in AOT when passed JsonNode")]
-        public static bool CommonEquals(object obj1, object obj2)
+        public static bool CommonEquals(object obj1, object obj2, IMemory state)
         {
             if (obj1 == null || obj2 == null)
             {
@@ -985,11 +985,6 @@ namespace AdaptiveExpressions
             if (obj1 is JsonValue jobj1 && obj2 is JsonValue jobj2)
             {
                 return JsonValue.DeepEquals(jobj1, jobj2);
-            }
-
-            if (!JsonSerializer.IsReflectionEnabledByDefault)
-            {
-                Environment.FailFast("Unsupported for AOT scenarios");
             }
 
             obj1 = ResolveValue(obj1);
@@ -1006,7 +1001,7 @@ namespace AdaptiveExpressions
                 var isEqual = true;
                 for (var i = 0; i < l0.Count; i++)
                 {
-                    if (!CommonEquals(l0[i], l1[i]))
+                    if (!CommonEquals(l0[i], l1[i], state))
                     {
                         isEqual = false;
                         break;
@@ -1026,8 +1021,8 @@ namespace AdaptiveExpressions
                     return false;
                 }
 
-                var jObj1 = JsonSerializer.SerializeToNode(obj1);
-                var jObj2 = JsonSerializer.SerializeToNode(obj2);
+                var jObj1 = state.SerializeToNode(obj1);
+                var jObj2 = state.SerializeToNode(obj2);
                 return JsonNode.DeepEquals(jObj1, jObj2);
             }
 
@@ -1732,17 +1727,19 @@ namespace AdaptiveExpressions
             }
         }
 
-        //internal static void Merge(this JsonArray target, JsonArray source)
-        //{
-        //    var set = target.ToHashSet();
-        //    foreach (var val in source)
-        //    {
-        //        if (!set.Contains(val))
-        //        {
-        //            target.Add(val);
-        //        }
-        //    }
-        //}
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AOT caller will have supplied a non-null JsonTypeInfo")]
+        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AOT caller will have supplied a non-null JsonTypeInfo")]
+        internal static void SerializeValueToWriter<T>(Utf8JsonWriter writer, T value, JsonTypeInfo valueJsonTypeInfo, JsonSerializerOptions options)
+        {
+            if (valueJsonTypeInfo != null)
+            {
+                JsonSerializer.SerializeToNode(value, valueJsonTypeInfo).AsValue().WriteTo(writer, options);
+            }
+            else
+            {
+                JsonValue.Create(value).WriteTo(writer, options);
+            }
+        }
 
         private static (object, string) ParseISOTimestamp(string timeStamp, Func<DateTime, (object, string)> transform = null)
         {

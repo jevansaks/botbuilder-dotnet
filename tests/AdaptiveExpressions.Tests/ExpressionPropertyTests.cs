@@ -207,6 +207,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(22, foo.Age);
         }
 
+#if !AOT
         [Fact]
         public void ExpressionPropertyTests_TestImplicitCasts()
         {
@@ -317,6 +318,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(default(bool), testNull.Bool.TryGetValue(data).Value);
             Assert.Equal(default(string[]), testNull.Strings.TryGetValue(data).Value);
         }
+#endif
 
         [Fact]
         public void ExpressionPropertyTests_StringExpression()
@@ -491,7 +493,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 test = TestEnum.Two
             };
 
-            var val = new EnumExpression<TestEnum>("three");
+            var val = new EnumExpression<TestEnum>("three", TestSerializerContext.Default.TestEnum);
             Assert.Null(val.ExpressionText);
             Assert.Equal(TestEnum.Three, val.Value);
             Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
@@ -499,7 +501,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(TestEnum.Three, result);
             Assert.Null(error);
 
-            val = new EnumExpression<TestEnum>("=three");
+            val = new EnumExpression<TestEnum>("=three", TestSerializerContext.Default.TestEnum);
             Assert.Null(val.ExpressionText);
             Assert.Equal(TestEnum.Three, val.Value);
             Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
@@ -507,7 +509,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(TestEnum.Three, result);
             Assert.Null(error);
 
-            val = new EnumExpression<TestEnum>("=test");
+            val = new EnumExpression<TestEnum>("=test", TestSerializerContext.Default.TestEnum);
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(TestEnum), val.Value);
             Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
@@ -515,7 +517,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(TestEnum.Two, result);
             Assert.Null(error);
 
-            val = new EnumExpression<TestEnum>(TestEnum.Three);
+            val = new EnumExpression<TestEnum>(TestEnum.Three, TestSerializerContext.Default.TestEnum);
             Assert.Null(val.ExpressionText);
             Assert.Equal(TestEnum.Three, val.Value);
             Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
@@ -523,7 +525,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(TestEnum.Three, result);
             Assert.Null(error);
 
-            val = new EnumExpression<TestEnum>("garbage");
+            val = new EnumExpression<TestEnum>("garbage", TestSerializerContext.Default.TestEnum);
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(TestEnum), val.Value);
             Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
@@ -531,7 +533,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(default(TestEnum), result);
             Assert.Null(error);
 
-            val = new EnumExpression<TestEnum>("=sum(garbage)");
+            val = new EnumExpression<TestEnum>("=sum(garbage)", TestSerializerContext.Default.TestEnum);
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(TestEnum), val.Value);
             Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
@@ -756,6 +758,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
         [JsonSerializable(typeof(List<string>))]
         [JsonSerializable(typeof(List<Foo>))]
         [JsonSerializable(typeof(ImplicitCastTest))]
+        [JsonSerializable(typeof(TestEnum))]
         [JsonSourceGenerationOptions(
             WriteIndented = true,
 #pragma warning disable SA1118 // Parameter should not span multiple lines

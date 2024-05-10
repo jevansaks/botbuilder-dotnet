@@ -21,7 +21,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         public Equal()
             : base(
                   ExpressionType.Equal,
-                  (args) => FunctionUtils.CommonEquals(args[0], args[1]),
+                  (args, state) => FunctionUtils.CommonEquals(args[0], args[1], state),
                   FunctionUtils.ValidateBinary)
         {
         }

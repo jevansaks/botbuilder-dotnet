@@ -20,7 +20,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         public NotEqual()
             : base(
                   ExpressionType.NotEqual,
-                  (args) => !FunctionUtils.CommonEquals(args[0], args[1]),
+                  (args, state) => !FunctionUtils.CommonEquals(args[0], args[1], state),
                   FunctionUtils.ValidateBinary)
         {
         }

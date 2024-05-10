@@ -35,7 +35,7 @@ namespace AdaptiveExpressions.Properties
         public ExpressionProperty(JsonTypeInfo typeInfo)
         {
             ValueJsonTypeInfo = typeInfo;
-            if (ValueJsonTypeInfo.Type != typeof(T))
+            if (ValueJsonTypeInfo.Type != typeof(T) && typeof(T) != typeof(object))
             {
                 throw new InvalidOperationException("Mismatched TypeInfo");
             }
@@ -62,7 +62,7 @@ namespace AdaptiveExpressions.Properties
         public ExpressionProperty(object value, JsonTypeInfo typeInfo)
         {
             ValueJsonTypeInfo = typeInfo;
-            if (ValueJsonTypeInfo.Type != typeof(T))
+            if (ValueJsonTypeInfo.Type != typeof(T) && typeof(T) != typeof(object))
             {
                 throw new InvalidOperationException("Mismatched TypeInfo");
             }

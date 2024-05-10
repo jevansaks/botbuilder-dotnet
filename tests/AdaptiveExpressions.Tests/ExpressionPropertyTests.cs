@@ -14,6 +14,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using AdaptiveExpressions;
 using AdaptiveExpressions.Converters;
+using AdaptiveExpressions.Memory;
 using AdaptiveExpressions.Properties;
 using Xunit;
 
@@ -46,13 +47,13 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
         [Fact]
         public void ExpressionPropertyTests_ValueTests()
         {
-            TestExpressionPropertyWithValue<byte>("1", 1);
-            TestExpressionPropertyWithValue<short>("2", 2);
-            TestExpressionPropertyWithValue<ushort>("3", 3);
-            TestExpressionPropertyWithValue<uint>("5", 5);
-            TestExpressionPropertyWithValue<long>("6", 6);
-            TestExpressionPropertyWithValue<ulong>("7", 7);
-            TestExpressionPropertyWithValue<double>("3.1", 3.1D);
+            TestExpressionPropertyWithValue<byte>("1", 1, TestSerializerContext.Default.Byte);
+            TestExpressionPropertyWithValue<short>("2", 2, TestSerializerContext.Default.Int16);
+            TestExpressionPropertyWithValue<ushort>("3", 3, TestSerializerContext.Default.UInt16);
+            TestExpressionPropertyWithValue<uint>("5", 5, TestSerializerContext.Default.UInt32);
+            TestExpressionPropertyWithValue<long>("6", 6, TestSerializerContext.Default.Int64);
+            TestExpressionPropertyWithValue<ulong>("7", 7, TestSerializerContext.Default.UInt64);
+            TestExpressionPropertyWithValue<double>("3.1", 3.1D, TestSerializerContext.Default.Double);
         }
 
         [Fact]
@@ -69,36 +70,47 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
 
         private void TestWithData(object data)
         {
-            TestExpressionPropertyWithValue<byte>("ByteNum", 1, data);
-            TestExpressionPropertyWithValue<byte>("=ByteNum", 1, data);
+            TestExpressionPropertyWithValue<byte>("ByteNum", 1, data, TestSerializerContext.Default.Byte);
+            TestExpressionPropertyWithValue<byte>("=ByteNum", 1, data, TestSerializerContext.Default.Byte);
 
-            TestExpressionPropertyWithValue<short>("ShortNum", 2, data);
-            TestExpressionPropertyWithValue<short>("=ShortNum", 2, data);
+            TestExpressionPropertyWithValue<short>("ShortNum", 2, data, TestSerializerContext.Default.Int16);
+            TestExpressionPropertyWithValue<short>("=ShortNum", 2, data, TestSerializerContext.Default.Int16);
 
-            TestExpressionPropertyWithValue<ushort>("UShortNum", 3, data);
-            TestExpressionPropertyWithValue<ushort>("=UShortNum", 3, data);
+            TestExpressionPropertyWithValue<ushort>("UShortNum", 3, data, TestSerializerContext.Default.UInt16);
+            TestExpressionPropertyWithValue<ushort>("=UShortNum", 3, data, TestSerializerContext.Default.UInt16);
 
-            TestExpressionPropertyWithValue<uint>("UIntNum", 5, data);
-            TestExpressionPropertyWithValue<uint>("=UIntNum", 5, data);
+            TestExpressionPropertyWithValue<uint>("UIntNum", 5, data, TestSerializerContext.Default.UInt32);
+            TestExpressionPropertyWithValue<uint>("=UIntNum", 5, data, TestSerializerContext.Default.UInt32);
 
-            TestExpressionPropertyWithValue<ulong>("ULongNum", 7, data);
-            TestExpressionPropertyWithValue<ulong>("=ULongNum", 7, data);
+            TestExpressionPropertyWithValue<ulong>("ULongNum", 7, data, TestSerializerContext.Default.UInt64);
+            TestExpressionPropertyWithValue<ulong>("=ULongNum", 7, data, TestSerializerContext.Default.UInt64);
 
-            TestExpressionPropertyWithValue<double>("DoubleNum", 3.1D, data);
-            TestExpressionPropertyWithValue<double>("=DoubleNum", 3.1D, data);
+            TestExpressionPropertyWithValue<double>("DoubleNum", 3.1D, data, TestSerializerContext.Default.Double);
+            TestExpressionPropertyWithValue<double>("=DoubleNum", 3.1D, data, TestSerializerContext.Default.Double);
 
             var list = new List<string>() { "a", "b", "c" };
-            TestExpressionPropertyWithValue<List<string>>("StrArr", list, data);
-            TestExpressionPropertyWithValue<List<string>>("=StrArr", list, data);
+            TestExpressionPropertyWithValue<List<string>>("StrArr", list, data, TestSerializerContext.Default.ListString);
+            TestExpressionPropertyWithValue<List<string>>("=StrArr", list, data, TestSerializerContext.Default.ListString);
 
-            TestExpressionPropertyWithValue<List<string>>("createArray('a','b','c')", list, data);
-            TestExpressionPropertyWithValue<List<string>>("=createArray('a','b','c')", list, data);
+            TestExpressionPropertyWithValue<List<string>>("createArray('a','b','c')", list, data, TestSerializerContext.Default.ListString);
+            TestExpressionPropertyWithValue<List<string>>("=createArray('a','b','c')", list, data, TestSerializerContext.Default.ListString);
         }
 
-        private void TestExpressionPropertyWithValue<T>(string value, T expected, object memory = null)
+        private void TestExpressionPropertyWithValue<T>(string value, T expected, JsonTypeInfo typeInfo)
         {
-            var ep = new ExpressionProperty<T>(value);
+            TestExpressionPropertyWithValue(value, expected, null, typeInfo);
+        }
+
+        private void TestExpressionPropertyWithValue<T>(string value, T expected, object memory, JsonTypeInfo typeInfo)
+        {
+            var ep = new ExpressionProperty<T>(value, typeInfo);
+#if AOT
+#pragma warning disable IL2026, IL3050 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+            var (result, error) = ep.TryGetValue(new SimpleObjectMemory(memory ?? new object(), TestSerializerContext.Default));
+#pragma warning restore IL2026, IL3050 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+#else
             var (result, error) = ep.TryGetValue(memory ?? new object());
+#endif
             if (result is ICollection)
             {
                 Assert.Equal((ICollection)expected, (ICollection)result);
@@ -123,7 +135,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 }
             };
 
-            var ep = new ExpressionProperty<Foo>("test");
+            var ep = new ExpressionProperty<Foo>("test", TestSerializerContext.Default.Foo);
             var (result, error) = ep.TryGetValue(state);
             Assert.Equal("Test", result.Name);
             Assert.Equal(22, result.Age);
@@ -138,7 +150,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 Age = 22
             };
 
-            var ep = new ExpressionProperty<Foo>(foo);
+            var ep = new ExpressionProperty<Foo>(foo, TestSerializerContext.Default.Foo);
             var (result, error) = ep.TryGetValue(new object());
             Assert.Equal("Test", result.Name);
             Assert.Equal(22, result.Age);
@@ -384,7 +396,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 test = new Anonymous2 { x = 13 }
             };
 
-            var val = new ValueExpression("test");
+            var val = new ValueExpression("test", TestSerializerContext.Default.Object);
             Assert.Equal("=`test`", val.ExpressionText);
             Assert.Null(val.Value);
             Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.ValueExpression).ToString());
@@ -392,7 +404,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal("test", result);
             Assert.Null(error);
 
-            val = new ValueExpression("=test");
+            val = new ValueExpression("=test", TestSerializerContext.Default.Object);
             Assert.Equal("=test", val.ExpressionText);
             Assert.Null(val.Value);
             Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.ValueExpression).ToString());
@@ -402,7 +414,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
 #pragma warning restore IL2026, IL3050
             Assert.Null(error);
 
-            val = new ValueExpression(data.test);
+            val = new ValueExpression(data.test, TestSerializerContext.Default.Object);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             Assert.Equal(JsonSerializer.Serialize(data.test, TestSerializerContext.Default.Anonymous2), RoundTripSerialize(val, TestSerializerContext.Default.ValueExpression).ToString());
@@ -412,7 +424,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
 #pragma warning restore IL2026, IL3050
             Assert.Null(error);
 
-            val = new ValueExpression("Hello ${test.x}");
+            val = new ValueExpression("Hello ${test.x}", TestSerializerContext.Default.Object);
             Assert.Equal("=`Hello ${test.x}`", val.ExpressionText);
             Assert.Null(val.Value);
             Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.ValueExpression).ToString());
@@ -421,24 +433,24 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Null(error);
 
             // slashes are the chars
-            val = new ValueExpression("c:\\test\\test\\test");
+            val = new ValueExpression("c:\\test\\test\\test", TestSerializerContext.Default.Object);
             (result, error) = val.TryGetValue(data);
             Assert.Equal("c:\\test\\test\\test", result);
             Assert.Null(error);
 
             // tabs are the chars
-            val = new ValueExpression("c:\test\test\test");
+            val = new ValueExpression("c:\test\test\test", TestSerializerContext.Default.Object);
             (result, error) = val.TryGetValue(data);
             Assert.Equal("c:\test\test\test", result);
             Assert.Null(error);
 
             // test backtick in valueExpression
-            val = new ValueExpression("name `backtick");
+            val = new ValueExpression("name `backtick", TestSerializerContext.Default.Object);
             (result, error) = val.TryGetValue(data);
             Assert.Equal("name `backtick", result);
             Assert.Null(error);
 
-            val = new ValueExpression("name \\`backtick");
+            val = new ValueExpression("name \\`backtick", TestSerializerContext.Default.Object);
             (result, error) = val.TryGetValue(data);
             Assert.Equal("name \\`backtick", result);
             Assert.Null(error);
@@ -615,7 +627,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 }
             };
 
-            var val = new ObjectExpression<Foo>("test");
+            var val = new ObjectExpression<Foo>("test", TestSerializerContext.Default.Foo);
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             var (result, error) = val.TryGetValue(data);
@@ -623,7 +635,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal("joe", result.Name);
             Assert.Null(error);
 
-            val = new ObjectExpression<Foo>("=test");
+            val = new ObjectExpression<Foo>("=test", TestSerializerContext.Default.Foo);
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             (result, error) = val.TryGetValue(data);
@@ -631,7 +643,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal("joe", result.Name);
             Assert.Null(error);
 
-            val = new ObjectExpression<Foo>(data.test);
+            val = new ObjectExpression<Foo>(data.test, TestSerializerContext.Default.Foo);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
@@ -639,7 +651,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal("joe", result.Name);
             Assert.Null(error);
 
-            val = new ObjectExpression<Foo>(JsonSerializer.SerializeToNode(data.test, TestSerializerContext.Default.Foo));
+            val = new ObjectExpression<Foo>(JsonSerializer.SerializeToNode(data.test, TestSerializerContext.Default.Foo), TestSerializerContext.Default.Foo);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
@@ -662,28 +674,28 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 }
             };
 
-            var val = new ArrayExpression<string>("test.Strings");
+            var val = new ArrayExpression<string>("test.Strings", TestSerializerContext.Default.ListString);
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             var (result, error) = val.TryGetValue(data);
             Assert.Equal(JsonSerializer.Serialize(data.test.Strings, TestSerializerContext.Default.ListString), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListString));
             Assert.Equal(data.test.Strings, result);
 
-            val = new ArrayExpression<string>("=test.Strings");
+            val = new ArrayExpression<string>("=test.Strings", TestSerializerContext.Default.ListString);
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             (result, error) = val.TryGetValue(data);
             Assert.Equal(JsonSerializer.Serialize(data.test.Strings, TestSerializerContext.Default.ListString), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListString));
             Assert.Equal(data.test.Strings, result);
 
-            val = new ArrayExpression<string>(data.test.Strings);
+            val = new ArrayExpression<string>(data.test.Strings, TestSerializerContext.Default.ListString);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
             Assert.Equal(JsonSerializer.Serialize(data.test.Strings, TestSerializerContext.Default.ListString), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListString));
             Assert.Equal(data.test.Strings, result);
 
-            val = new ArrayExpression<string>(data.test.Strings);
+            val = new ArrayExpression<string>(data.test.Strings, TestSerializerContext.Default.ListString);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
@@ -709,31 +721,37 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 }
             };
 
-            var val = new ArrayExpression<Foo>("test.Objects");
+            var val = new ArrayExpression<Foo>("test.Objects", TestSerializerContext.Default.ListFoo);
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             var (result, error) = val.TryGetValue(data);
             Assert.Equal(data.test.Objects, result);
 
-            val = new ArrayExpression<Foo>("=test.Objects");
+            val = new ArrayExpression<Foo>("=test.Objects", TestSerializerContext.Default.ListFoo);
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             (result, error) = val.TryGetValue(data);
             Assert.Equal(data.test.Objects, result);
 
-            val = new ArrayExpression<Foo>(data.test.Objects);
+            val = new ArrayExpression<Foo>(data.test.Objects, TestSerializerContext.Default.ListFoo);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
             Assert.Equal(JsonSerializer.Serialize(data.test.Objects, TestSerializerContext.Default.ListFoo), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListFoo));
 
-            val = new ArrayExpression<Foo>(JsonValue.Create(data.test.Objects, TestSerializerContext.Default.ListFoo));
+            val = new ArrayExpression<Foo>(JsonValue.Create(data.test.Objects, TestSerializerContext.Default.ListFoo), TestSerializerContext.Default.ListFoo);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
             Assert.Equal(JsonSerializer.Serialize(data.test.Objects, TestSerializerContext.Default.ListFoo), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListFoo));
         }
 
+        [JsonSerializable(typeof(byte))]
+        [JsonSerializable(typeof(bool))]
+        [JsonSerializable(typeof(short))]
+        [JsonSerializable(typeof(ushort))]
+        [JsonSerializable(typeof(int))]
+        [JsonSerializable(typeof(uint))]
         [JsonSerializable(typeof(Blat))]
         [JsonSerializable(typeof(Foo))]
         [JsonSerializable(typeof(Anonymous1))]
@@ -755,10 +773,13 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
         [JsonSerializable(typeof(ExpressionProperty<double>))]
         [JsonSerializable(typeof(ExpressionProperty<TestEnum>))]
         [JsonSerializable(typeof(ExpressionProperty<Foo>))]
+        [JsonSerializable(typeof(List<object>))]
         [JsonSerializable(typeof(List<string>))]
         [JsonSerializable(typeof(List<Foo>))]
         [JsonSerializable(typeof(ImplicitCastTest))]
         [JsonSerializable(typeof(TestEnum))]
+        [JsonSerializable(typeof(JsonObject))]
+        [JsonSerializable(typeof(JsonArray))]
         [JsonSourceGenerationOptions(
             WriteIndented = true,
 #pragma warning disable SA1118 // Parameter should not span multiple lines

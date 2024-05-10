@@ -1251,6 +1251,7 @@ namespace AdaptiveExpressions.Tests
            || value is double
            || value is decimal;
 
+#if !AOT
         [Theory]
         [MemberData(nameof(Data))]
         public void Evaluate(string input, object expected, HashSet<string> expectedRefs)
@@ -1338,6 +1339,7 @@ namespace AdaptiveExpressions.Tests
                 Thread.CurrentThread.CurrentCulture = originalCulture;
             }
         }
+#endif
 
         [Theory]
         [MemberData(nameof(Data))]

@@ -105,6 +105,26 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="value">collection of (T).</param>
         /// <param name="typeInfo">typeInfo.</param>
+        public ArrayExpression(Expression value, JsonTypeInfo typeInfo)
+            : base(value, typeInfo)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ArrayExpression{T}"/> class.
+        /// </summary>
+        /// <param name="value">collection of (T).</param>
+        /// <param name="typeInfo">typeInfo.</param>
+        public ArrayExpression(string value, JsonTypeInfo typeInfo)
+            : base(value, typeInfo)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ArrayExpression{T}"/> class.
+        /// </summary>
+        /// <param name="value">collection of (T).</param>
+        /// <param name="typeInfo">typeInfo.</param>
         public ArrayExpression(JsonNode value, JsonTypeInfo typeInfo)
             : base(value, typeInfo)
         {

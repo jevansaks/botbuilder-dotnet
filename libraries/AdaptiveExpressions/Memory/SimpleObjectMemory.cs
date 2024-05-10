@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using AdaptiveExpressions.Properties;
 
 namespace AdaptiveExpressions.Memory
@@ -22,15 +23,18 @@ namespace AdaptiveExpressions.Memory
     public class SimpleObjectMemory : IMemory
     {
         private object _memory = null;
+        private JsonSerializerContext _serializerContext = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SimpleObjectMemory"/> class.
         /// This wraps a simple object as IMemory.
         /// </summary>
         /// <param name="memory">The object to wrap.</param>
-        public SimpleObjectMemory(object memory)
+        /// <param name="serializerContext">optional JsonSerializerContext for serialization.</param>
+        public SimpleObjectMemory(object memory, JsonSerializerContext serializerContext = null)
         {
             _memory = memory;
+            _serializerContext = serializerContext;
         }
 
         /// <summary>
@@ -192,19 +196,19 @@ namespace AdaptiveExpressions.Memory
         /// <inheritdoc/>
         public string JsonSerializeToString(object value)
         {
-            return JsonSerializer.Serialize(value);
+            return JsonSerializer.Serialize(value, _serializerContext?.Options);
         }
 
         /// <inheritdoc/>
         public JsonNode SerializeToNode(object value)
         {
-            return value == null ? null : JsonSerializer.SerializeToNode(value);
+            return value == null ? null : JsonSerializer.SerializeToNode(value, _serializerContext?.Options);
         }
 
         /// <inheritdoc/>
         public object ConvertTo(Type type, object value)
         {
-            return JsonSerializer.Deserialize(JsonSerializer.SerializeToNode(value), type);
+            return JsonSerializer.Deserialize(JsonSerializer.SerializeToNode(value, _serializerContext?.Options), type, _serializerContext?.Options);
         }
 
         /// <summary>
@@ -213,7 +217,7 @@ namespace AdaptiveExpressions.Memory
         /// <returns>A string value.</returns>
         public override string ToString()
         {
-            return JsonSerializer.Serialize(_memory, new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.IgnoreCycles });
+            return JsonSerializer.Serialize(_memory, new JsonSerializerOptions(_serializerContext?.Options) { ReferenceHandler = ReferenceHandler.IgnoreCycles });
         }
 
         private (object result, string error) SetProperty(object instance, string property, object value)
@@ -231,7 +235,7 @@ namespace AdaptiveExpressions.Memory
             }
             else if (instance is JsonObject jobj)
             {
-                jobj[property] = JsonSerializer.SerializeToNode(value);
+                jobj[property] = JsonSerializer.SerializeToNode(value, _serializerContext?.Options);
             }
             else
             {

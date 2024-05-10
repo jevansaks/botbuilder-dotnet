@@ -1733,7 +1733,7 @@ namespace AdaptiveExpressions
         {
             if (valueJsonTypeInfo != null)
             {
-                JsonSerializer.SerializeToNode(value, valueJsonTypeInfo).AsValue().WriteTo(writer, options);
+                JsonSerializer.Serialize(writer, value, valueJsonTypeInfo);
             }
             else
             {

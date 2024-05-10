@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0;net8.0</TargetFramework>
+    <!--<TargetFramework>netstandard2.0</TargetFramework>-->
     <PackageId>AdaptiveExpressionsSTJ</PackageId>
     <Description>This library implements Microsoft Bot Builder Expression evaluator for .NET</Description>
     <Summary>This library implements Microsoft Bot Builder Expression evaluator for .NET</Summary>

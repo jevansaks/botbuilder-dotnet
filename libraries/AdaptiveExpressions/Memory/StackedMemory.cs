@@ -4,6 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using AdaptiveExpressions.BuiltinFunctions;
 using AdaptiveExpressions.Properties;
 
 namespace AdaptiveExpressions.Memory
@@ -85,8 +88,25 @@ namespace AdaptiveExpressions.Memory
         /// <inheritdoc/>
         public IMemory CreateMemoryFrom(object value)
         {
-            var array = ToArray();
-            return array.Last().CreateMemoryFrom(value);
+            return this.Last().CreateMemoryFrom(value);
+        }
+
+        /// <inheritdoc/>
+        public string JsonSerializeToString(object value)
+        {
+            return this.Last().JsonSerializeToString(value);
+        }
+
+        /// <inheritdoc/>
+        public JsonNode SerializeToNode(object value)
+        {
+            return this.Last().SerializeToNode(value);
+        }
+
+        /// <inheritdoc/>
+        public object ConvertTo(Type type, object value)
+        {
+            return this.Last().ConvertTo(type, value);
         }
 
         /// <summary>
@@ -96,6 +116,87 @@ namespace AdaptiveExpressions.Memory
         public string Version()
         {
             return "0"; // Read-only
+        }
+
+        /// <summary>
+        /// Push a frame with just a single variable in it.
+        /// </summary>
+        /// <param name="propertyName">name.</param>
+        /// <param name="value">value.</param>
+        public void PushLocalIterator(string propertyName, object value)
+        {
+            Push(new StackedMemoryFrame { PropertyName = propertyName, Value = value, Parent = this });
+        }
+
+        private class StackedMemoryFrame : IMemory
+        {
+            public string PropertyName { get; init; }
+
+            public object Value { get; init; }
+
+            public StackedMemory Parent { get; init; }
+
+            public IMemory CreateMemoryFrom(object value)
+            {
+                return Parent.CreateMemoryFrom(value);
+            }
+
+            public string JsonSerializeToString(object value)
+            {
+                return Parent.JsonSerializeToString(value);
+            }
+
+            public JsonNode SerializeToNode(object value)
+            {
+                return Parent.SerializeToNode(value);
+            }
+
+            public object ConvertTo(Type type, object value)
+            {
+                return Parent.ConvertTo(type, value);
+            }
+
+            public void SetValue(string path, object value)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool TryGetValue(string path, out object value)
+            {
+                var pathSplit = path.Split(['.', '['], 2);
+                if (pathSplit.Length == 1)
+                {
+                    // If the path matches the property name exactly, return it.
+                    if (path == PropertyName)
+                    {
+                        value = Value;
+                        return true;
+                    }
+                }
+                else
+                {
+                    // If the path has anything left, delegate to IMemory to resolve the rest.
+                    var (pathStart, pathRemainder) = (pathSplit[0], pathSplit[1]);
+                    if (pathStart == PropertyName)
+                    {
+                        // If we split on [, add that back before we keep going
+                        if (path[pathStart.Length] == '[')
+                        {
+                            pathRemainder = "[" + pathRemainder;
+                        }
+
+                        return Parent.CreateMemoryFrom(Value).TryGetValue(pathRemainder, out value);
+                    }
+                }
+
+                value = null;
+                return false;
+            }
+
+            public string Version()
+            {
+                return Parent.Version();
+            }
         }
     }
 }

@@ -73,7 +73,7 @@ namespace AdaptiveExpressions.Memory
 
             if (value is IExpressionProperty ep)
             {
-                value = ep.GetObject(_memory);
+                value = ep.GetObject(MemoryFactory.Create(_memory));
             }
 
             return true;
@@ -189,6 +189,24 @@ namespace AdaptiveExpressions.Memory
             return ToString();
         }
 
+        /// <inheritdoc/>
+        public string JsonSerializeToString(object value)
+        {
+            return JsonSerializer.Serialize(value);
+        }
+
+        /// <inheritdoc/>
+        public JsonNode SerializeToNode(object value)
+        {
+            return value == null ? null : JsonSerializer.SerializeToNode(value);
+        }
+
+        /// <inheritdoc/>
+        public object ConvertTo(Type type, object value)
+        {
+            return JsonSerializer.Deserialize(JsonSerializer.SerializeToNode(value), type);
+        }
+
         /// <summary>
         /// Returns a string that represents the current object.
         /// </summary>
@@ -213,7 +231,7 @@ namespace AdaptiveExpressions.Memory
             }
             else if (instance is JsonObject jobj)
             {
-                jobj[property] = FunctionUtils.ConvertToJsonNode(value);
+                jobj[property] = JsonSerializer.SerializeToNode(value);
             }
             else
             {

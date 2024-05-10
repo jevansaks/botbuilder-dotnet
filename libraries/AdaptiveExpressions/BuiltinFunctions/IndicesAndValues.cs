@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
+using AdaptiveExpressions.Memory;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -21,7 +22,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         {
         }
 
-        private static (object, string) Evaluator(Expression expression, Memory.IMemory state, Options options)
+        private static (object, string) Evaluator(Expression expression, IMemory state, Options options)
         {
             object result = null;
             string error;
@@ -43,7 +44,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                 {
                     result = Object2List(jobj);
                 }
-                else if (FunctionUtils.ConvertToJsonNode(instance) is JsonObject jsonObject)
+                else if (state.SerializeToNode(instance) is JsonObject jsonObject)
                 {
                     result = Object2List(jsonObject);
                 }

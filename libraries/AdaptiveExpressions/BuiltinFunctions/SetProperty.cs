@@ -21,10 +21,10 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
         private static EvaluateExpressionDelegate Evaluator()
         {
-            return FunctionUtils.Apply(args =>
+            return FunctionUtils.Apply((args, state) =>
             {
                 var newJobj = (IDictionary<string, JsonNode>)args[0];
-                newJobj[args[1].ToString()] = FunctionUtils.ConvertToJsonNode(args[2]);
+                newJobj[args[1].ToString()] = state.SerializeToNode(args[2]);
                 return newJobj;
             });
         }

@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using AdaptiveExpressions.Memory;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -24,13 +25,13 @@ namespace AdaptiveExpressions.BuiltinFunctions
         private static EvaluateExpressionDelegate Evaluator()
         {
             return FunctionUtils.ApplyWithError(
-                args =>
+                (args, state) =>
                 {
                     var result = new JsonObject();
 
                     foreach (var arg in args)
                     {
-                        var (list, itemError) = ParseToObjectList(arg);
+                        var (list, itemError) = ParseToObjectList(arg, state);
 
                         if (itemError != null)
                         {
@@ -47,7 +48,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                 });
         }
 
-        private static (List<JsonObject>, string) ParseToObjectList(object arg)
+        private static (List<JsonObject>, string) ParseToObjectList(object arg, IMemory state)
         {
             var result = new List<JsonObject>();
             string error = null;
@@ -57,7 +58,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             }
             else if (FunctionUtils.TryParseList(arg, out var array))
             {
-                var jsonArray = JsonSerializer.SerializeToNode(array).AsArray();
+                var jsonArray = state.SerializeToNode(array).AsArray();
                 foreach (var node in jsonArray)
                 {
                     if (node is JsonObject jobj)
@@ -73,7 +74,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             }
             else
             {
-                var node = FunctionUtils.ConvertToJsonNode(arg);
+                var node = state.SerializeToNode(arg);
                 if (node is JsonObject jobj)
                 {
                     result.Add(jobj);

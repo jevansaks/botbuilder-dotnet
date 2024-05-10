@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization.Metadata;
+using AdaptiveExpressions.Memory;
 using Microsoft.Win32.SafeHandles;
 
 namespace AdaptiveExpressions.Properties
@@ -172,7 +173,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="data">data to use for expression binding.</param>
         /// <returns>Value or default(T) if not found.</returns>
-        public virtual T GetValue(object data)
+        public virtual T GetValue(IMemory data)
         {
             return this.TryGetValue(data).Value;
         }
@@ -182,7 +183,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="data">data to use for expression binding.</param>
         /// <returns>value.</returns>
-        public virtual (T Value, string Error) TryGetValue(object data)
+        public virtual (T Value, string Error) TryGetValue(IMemory data)
         {
             if (_expression == null && ExpressionText != null)
             {
@@ -204,6 +205,18 @@ namespace AdaptiveExpressions.Properties
             }
 
             return (Value, null);
+        }
+
+        /// <summary>
+        /// Try to Get the value.
+        /// </summary>
+        /// <param name="data">data to use for expression binding.</param>
+        /// <returns>value.</returns>
+        [RequiresDynamicCode("Use overload of TryGetValue that takes IMemory")]
+        [RequiresUnreferencedCode("Use overload of TryGetValue that takes IMemory")]
+        public (T Value, string Error) TryGetValue(object data)
+        {
+            return TryGetValue(MemoryFactory.Create(data));
         }
 
         /// <summary>
@@ -243,7 +256,7 @@ namespace AdaptiveExpressions.Properties
         /// <remarks>Helper methods which allows you to work with the expression property values as purely objects.</remarks>
         /// <param name="data">data to bind to.</param>
         /// <returns>value as object.</returns>
-        public virtual object GetObject(object data)
+        public virtual object GetObject(IMemory data)
         {
             return GetValue(data);
         }
@@ -254,7 +267,7 @@ namespace AdaptiveExpressions.Properties
         /// <remarks>Helper methods which allows you to work with the expression property values as purely objects.</remarks>
         /// <param name="data">data.</param>
         /// <returns>Value and error.</returns>
-        public virtual (object Value, string Error) TryGetObject(object data)
+        public virtual (object Value, string Error) TryGetObject(IMemory data)
         {
             return TryGetValue(data);
         }

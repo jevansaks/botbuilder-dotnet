@@ -30,7 +30,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         private static EvaluateExpressionDelegate Evaluator()
         {
             return FunctionUtils.ApplyWithOptionsAndError(
-                (args, options) => 
+                (args, state, options) => 
                 {
                     string error = null;
                     string result = null;
@@ -60,7 +60,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                         }
                         else
                         {
-                            result = JsonSerializer.Serialize(args[0]).TrimStart('"').TrimEnd('"');
+                            result = state.JsonSerializeToString(args[0]).TrimStart('"').TrimEnd('"');
                         }
                     }
 

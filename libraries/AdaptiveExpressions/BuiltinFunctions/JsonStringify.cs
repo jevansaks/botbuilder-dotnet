@@ -22,9 +22,9 @@ namespace AdaptiveExpressions.BuiltinFunctions
         private static EvaluateExpressionDelegate Evaluator()
         {
             return FunctionUtils.Apply(
-                (args) =>
+                (args, state) =>
                 {
-                    var result = JsonSerializer.Serialize(args[0]);
+                    var result = state.JsonSerializeToString(args[0]);
                     return result;
                 });
         }

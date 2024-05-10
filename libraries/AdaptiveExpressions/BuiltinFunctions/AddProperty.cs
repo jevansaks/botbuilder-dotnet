@@ -23,7 +23,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
         private static EvaluateExpressionDelegate Evaluator()
         {
-            return FunctionUtils.ApplyWithError(args =>
+            return FunctionUtils.ApplyWithError((args, state) =>
             {
                 var newJobj = (IDictionary<string, JsonNode>)args[0];
                 var prop = args[1].ToString();
@@ -34,7 +34,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                 }
                 else
                 {
-                    newJobj[prop] = FunctionUtils.ConvertToJsonNode(args[2]);
+                    newJobj[prop] = state.SerializeToNode(args[2]);
                 }
 
                 return (newJobj, error);

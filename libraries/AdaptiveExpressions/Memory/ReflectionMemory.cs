@@ -2,6 +2,8 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using AdaptiveExpressions.Properties;
 
 namespace AdaptiveExpressions.Memory
@@ -41,7 +43,7 @@ namespace AdaptiveExpressions.Memory
 
                 if (value is IExpressionProperty ep)
                 {
-                    value = ep.GetObject(_obj);
+                    value = ep.GetObject(MemoryFactory.Create(_obj));
                 }
             }
 
@@ -56,6 +58,21 @@ namespace AdaptiveExpressions.Memory
         public string Version()
         {
             return (string)_methods?.Version?.Invoke(_obj, Array.Empty<object>());
+        }
+
+        public string JsonSerializeToString(object value)
+        {
+            return JsonSerializer.Serialize(value);
+        }
+
+        public JsonNode SerializeToNode(object value)
+        {
+            return value == null ? null : JsonSerializer.SerializeToNode(value);
+        }
+
+        public object ConvertTo(Type type, object value)
+        {
+            return JsonSerializer.Deserialize(JsonSerializer.SerializeToNode(value), type);
         }
 
         internal static ReflectionMemory Create(object obj)

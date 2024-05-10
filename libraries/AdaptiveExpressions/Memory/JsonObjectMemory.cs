@@ -9,49 +9,55 @@ using Json.Path;
 
 namespace AdaptiveExpressions.Memory
 {
-    /// <summary>
-    /// Implementation of <see cref="IMemory"/> over JsonObject.
-    /// </summary>
-    public class JsonObjectMemory : IMemory
-    {
-        private JsonObject _memory = null;
+    ///// <summary>
+    ///// Implementation of <see cref="IMemory"/> over JsonObject.
+    ///// </summary>
+    //public class JsonObjectMemory // : IMemory
+    //{
+    //    private JsonObject _memory = null;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="JsonObjectMemory"/> class.
-        /// </summary>
-        /// <param name="memory">The object to wrap.</param>
-        public JsonObjectMemory(JsonObject memory)
-        {
-            _memory = memory;
-        }
+    //    /// <summary>
+    //    /// Initializes a new instance of the <see cref="JsonObjectMemory"/> class.
+    //    /// </summary>
+    //    /// <param name="memory">The object to wrap.</param>
+    //    public JsonObjectMemory(JsonObject memory)
+    //    {
+    //        _memory = memory;
+    //    }
 
-        /// <inheritdoc/>
-        public IMemory CreateMemoryFrom(object value)
-        {
-            if (value is JsonObject jobj)
-            {
-                return new JsonObjectMemory(jobj);
-            }
+    //    /// <inheritdoc/>
+    //    public IMemory CreateMemoryFrom(object value)
+    //    {
+    //        if (value is JsonObject jobj)
+    //        {
+    //            return new JsonObjectMemory(jobj);
+    //        }
 
-            throw new InvalidOperationException("Unknown value");
-        }
+    //        throw new InvalidOperationException("Unknown value");
+    //    }
 
-        /// <inheritdoc/>
-        public void SetValue(string path, object value)
-        {
-            throw new NotImplementedException();
-        }
+    //    /// <inheritdoc/>
+    //    public string JsonSerializeToString(object value)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        /// <inheritdoc/>
-        public bool TryGetValue(string path, out object value)
-        {
-            throw new NotImplementedException();
-        }
+    //    /// <inheritdoc/>
+    //    public void SetValue(string path, object value)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
 
-        /// <inheritdoc/>
-        public string Version()
-        {
-            throw new NotImplementedException();
-        }
-    }
+    //    /// <inheritdoc/>
+    //    public bool TryGetValue(string path, out object value)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    /// <inheritdoc/>
+    //    public string Version()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }

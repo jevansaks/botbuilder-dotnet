@@ -693,6 +693,39 @@ namespace AdaptiveExpressions
         /// <param name="function">Function to apply.</param>
         /// <param name="verify">Function to check each arg for validity.</param>
         /// <returns>Delegate for evaluating an expression.</returns>
+        public static EvaluateExpressionDelegate Apply(Func<IReadOnlyList<object>, IMemory, object> function, VerifyExpression verify = null)
+            =>
+            (expression, state, options) =>
+            {
+                object value = null;
+                string error = null;
+                IReadOnlyList<object> args;
+                (args, error) = EvaluateChildren(expression, state, options, verify);
+                if (error == null)
+                {
+                    try
+                    {
+                        value = function(args, state);
+                    }
+#pragma warning disable CA1031 // Do not catch general exception types (capture any exception and return it in the error)
+                    catch (Exception e)
+#pragma warning restore CA1031 // Do not catch general exception types
+                    {
+                        error = e.Message;
+                    }
+                }
+
+                value = ResolveValue(value);
+
+                return (value, error);
+            };
+
+        /// <summary>
+        /// Generate an expression delegate that applies function after verifying all children.
+        /// </summary>
+        /// <param name="function">Function to apply.</param>
+        /// <param name="verify">Function to check each arg for validity.</param>
+        /// <returns>Delegate for evaluating an expression.</returns>
         public static EvaluateExpressionDelegate ApplyWithError(Func<IReadOnlyList<object>, (object, string)> function, VerifyExpression verify = null)
             =>
             (expression, state, options) =>
@@ -726,6 +759,39 @@ namespace AdaptiveExpressions
         /// <param name="function">Function to apply.</param>
         /// <param name="verify">Function to check each arg for validity.</param>
         /// <returns>Delegate for evaluating an expression.</returns>
+        public static EvaluateExpressionDelegate ApplyWithError(Func<IReadOnlyList<object>, IMemory, (object, string)> function, VerifyExpression verify = null)
+            =>
+            (expression, state, options) =>
+            {
+                object value = null;
+                string error = null;
+                IReadOnlyList<object> args;
+                (args, error) = EvaluateChildren(expression, state, options, verify);
+                if (error == null)
+                {
+                    try
+                    {
+                        (value, error) = function(args, state);
+                    }
+#pragma warning disable CA1031 // Do not catch general exception types (capture any exception and return it in the error)
+                    catch (Exception e)
+#pragma warning restore CA1031 // Do not catch general exception types
+                    {
+                        error = e.Message;
+                    }
+                }
+
+                value = ResolveValue(value);
+
+                return (value, error);
+            };
+
+        /// <summary>
+        /// Generate an expression delegate that applies function after verifying all children.
+        /// </summary>
+        /// <param name="function">Function to apply.</param>
+        /// <param name="verify">Function to check each arg for validity.</param>
+        /// <returns>Delegate for evaluating an expression.</returns>
         public static EvaluateExpressionDelegate ApplyWithOptionsAndError(Func<IReadOnlyList<object>, Options, (object, string)> function, VerifyExpression verify = null)
             =>
             (expression, state, options) =>
@@ -739,6 +805,39 @@ namespace AdaptiveExpressions
                     try
                     {
                         (value, error) = function(args, options);
+                    }
+#pragma warning disable CA1031 // Do not catch general exception types (caputure any exception which may happen in the delegate function and return it)
+                    catch (Exception e)
+#pragma warning restore CA1031 // Do not catch general exception types
+                    {
+                        error = e.Message;
+                    }
+                }
+
+                value = ResolveValue(value);
+
+                return (value, error);
+            };
+
+        /// <summary>
+        /// Generate an expression delegate that applies function after verifying all children.
+        /// </summary>
+        /// <param name="function">Function to apply.</param>
+        /// <param name="verify">Function to check each arg for validity.</param>
+        /// <returns>Delegate for evaluating an expression.</returns>
+        public static EvaluateExpressionDelegate ApplyWithOptionsAndError(Func<IReadOnlyList<object>, IMemory, Options, (object, string)> function, VerifyExpression verify = null)
+            =>
+            (expression, state, options) =>
+            {
+                object value = null;
+                string error = null;
+                IReadOnlyList<object> args;
+                (args, error) = EvaluateChildren(expression, state, options, verify);
+                if (error == null)
+                {
+                    try
+                    {
+                        (value, error) = function(args, state, options);
                     }
 #pragma warning disable CA1031 // Do not catch general exception types (caputure any exception which may happen in the delegate function and return it)
                     catch (Exception e)
@@ -1249,7 +1348,7 @@ namespace AdaptiveExpressions
             }
             else if (error == null)
             {
-                var list = ConvertToList(instance);
+                var list = ConvertToList(instance, state);
                 if (list == null)
                 {
                     error = $"{expression.Children[0]} is not a collection or structure object to run Foreach";
@@ -1283,13 +1382,9 @@ namespace AdaptiveExpressions
             for (var idx = 0; idx < list.Count; idx++)
             {
                 var currentItem = AccessIndex(list, idx).value;
-                var local = new Dictionary<string, object>
-                {
-                    { iteratorName, currentItem },
-                };
 
                 // the local iterator is pushed as one memory layer in the memory stack
-                stackedMemory.Push(new SimpleObjectMemory(local));
+                stackedMemory.PushLocalIterator(iteratorName, currentItem);
                 (var r, var e) = expression.Children[2].TryEvaluate(stackedMemory, options);
                 stackedMemory.Pop();
 
@@ -1301,7 +1396,7 @@ namespace AdaptiveExpressions
             }
         }
 
-        internal static IList ConvertToList(object instance)
+        internal static IList ConvertToList(object instance, IMemory state)
         {
             IList list = null;
             if (TryParseList(instance, out IList ilist))
@@ -1312,7 +1407,7 @@ namespace AdaptiveExpressions
             {
                 list = Object2KVPairList(jobj);
             }
-            else if (ConvertToJsonNode(instance) is JsonObject jsonObject)
+            else if (state.SerializeToNode(instance) is JsonObject jsonObject)
             {
                 list = Object2KVPairList(jsonObject);
             }
@@ -1545,14 +1640,14 @@ namespace AdaptiveExpressions
             return Encoding.UTF8.GetBytes(strToConvert);
         }
 
-        internal static JsonNode ConvertToJsonNode(object value)
-        {
-            /* TODO: A couple options: 
-             * 1. Don't support this (require TryEvaluate to return a small set of known types), 
-             * 2. Make ConvertToJsonNode and similar calls a method on IMemory so callers have to do the conversion
-            */
-            return value == null ? null : JsonSerializer.SerializeToNode(value);
-        }
+        //internal static JsonNode ConvertToJsonNode(object value)
+        //{
+        //    /* TODO: A couple options: 
+        //     * 1. Don't support this (require TryEvaluate to return a small set of known types), 
+        //     * 2. Make ConvertToJsonNode and similar calls a method on IMemory so callers have to do the conversion
+        //    */
+        //    return value == null ? null : JsonSerializer.SerializeToNode(value);
+        //}
 
         // collection functions
 

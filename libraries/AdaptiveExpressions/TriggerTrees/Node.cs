@@ -12,7 +12,6 @@
 // #define VerifyTree
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -141,8 +140,6 @@ namespace AdaptiveExpressions.TriggerTrees
         /// </summary>
         /// <param name="state">Frame to evaluate against.</param>
         /// <returns>List of the most specific matches found.</returns>
-        [RequiresUnreferencedCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
-        [RequiresDynamicCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
         internal IReadOnlyList<Trigger> Matches(object state)
         {
             var matches = new HashSet<Trigger>();
@@ -595,8 +592,6 @@ namespace AdaptiveExpressions.TriggerTrees
             }
         }
 
-        [RequiresUnreferencedCode("TryEvaluate uses reflection, use overloads that take IMemory only")]
-        [RequiresDynamicCode("TryEvaluate uses reflection, use overloads that take IMemory only")]
         private bool Matches(object state, HashSet<Trigger> matches, Dictionary<Node, bool> matched)
         {
             if (!matched.TryGetValue(this, out var found))

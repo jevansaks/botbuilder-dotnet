@@ -55,8 +55,7 @@ namespace AdaptiveExpressions
             || value is int
             || value is uint
             || value is long
-            || value is ulong
-            || (value is decimal d && d == Math.Floor(d));
+            || value is ulong;
         }
 
         /// <summary>

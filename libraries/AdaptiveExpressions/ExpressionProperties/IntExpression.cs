@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using AdaptiveExpressions.Converters;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -19,7 +19,6 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="IntExpression"/> class.
         /// </summary>
         public IntExpression()
-            : base(AdaptiveExpressionsSerializerContext.Default.Int32)
         {
         }
 
@@ -28,7 +27,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="value">value to return.</param>
         public IntExpression(int value)
-            : base(value, AdaptiveExpressionsSerializerContext.Default.Int32)
+            : base(value)
         {
         }
 
@@ -37,7 +36,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">string expression to resolve to an int.</param>
         public IntExpression(string expression)
-            : base(expression, AdaptiveExpressionsSerializerContext.Default.Int32)
+            : base(expression)
         {
         }
 
@@ -46,7 +45,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">expression to resolve to an int.</param>
         public IntExpression(Expression expression)
-            : base(expression, AdaptiveExpressionsSerializerContext.Default.Int32)
+            : base(expression)
         {
         }
 
@@ -62,9 +61,9 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="IntExpression"/> class.
         /// </summary>
-        /// <param name="expressionOrValue">JsonNode to resolve to an int.</param>
-        public IntExpression(JsonNode expressionOrValue)
-            : base(expressionOrValue, AdaptiveExpressionsSerializerContext.Default.Int32)
+        /// <param name="expressionOrValue">JToken to resolve to an int.</param>
+        public IntExpression(JToken expressionOrValue)
+            : base(expressionOrValue)
         {
         }
 
@@ -91,7 +90,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to an IntExpression instance.
         /// </summary>
         /// <param name="expressionOrValue">The JSON Token to convert.</param>
-        public static implicit operator IntExpression(JsonNode expressionOrValue) => new IntExpression(expressionOrValue);
+        public static implicit operator IntExpression(JToken expressionOrValue) => new IntExpression(expressionOrValue);
 #pragma warning restore CA2225 // Operator overloads have named alternates
     }
 }

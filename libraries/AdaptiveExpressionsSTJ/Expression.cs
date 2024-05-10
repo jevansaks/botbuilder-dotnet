@@ -6,12 +6,14 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using AdaptiveExpressions.Converters;
 using AdaptiveExpressions.Memory;
-using Newtonsoft.Json;
 
 namespace AdaptiveExpressions
 {
@@ -501,6 +503,8 @@ namespace AdaptiveExpressions
         /// </param>
         /// <param name="options">Options used in the evaluation. </param>
         /// <returns>Computed value and an error string.  If the string is non-null, then there was an evaluation error.</returns>
+        [RequiresUnreferencedCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
+        [RequiresDynamicCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
         public (object value, string error) TryEvaluate(object state, Options options = null)
             => this.TryEvaluate<object>(MemoryFactory.Create(state), options);
 
@@ -526,6 +530,8 @@ namespace AdaptiveExpressions
         /// </param>
         /// <param name="options">Options used in the evaluation. </param>
         /// <returns>Computed value and an error string.  If the string is non-null, then there was an evaluation error.</returns>
+        [RequiresUnreferencedCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
+        [RequiresDynamicCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
         public (T value, string error) TryEvaluate<T>(object state, Options options = null)
         => this.TryEvaluate<T>(MemoryFactory.Create(state), options);
 
@@ -630,8 +636,9 @@ namespace AdaptiveExpressions
                     return (default(T), error);
                 }
 
-                var serializerSettings = new JsonSerializerSettings { MaxDepth = null };
-                return (JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(result, serializerSettings), serializerSettings), null);
+                // TODO: Alternative: this could call back to IMemory to convert
+                //return (state.Convert(result), null);
+                return ((T)state.ConvertTo(typeof(T), result), error);
             }
 #pragma warning disable CA1031 // Do not catch general exception types (just return an error)
             catch

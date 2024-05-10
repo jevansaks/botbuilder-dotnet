@@ -2,9 +2,10 @@
 // Licensed under the MIT License.
 
 using System;
+
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using AdaptiveExpressions.Converters;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -29,6 +30,7 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="StringExpression"/> class.
         /// </summary>
         public StringExpression()
+            : base(AdaptiveExpressionsSerializerContext.Default.String)
         {
         }
 
@@ -37,7 +39,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expressionOrValue">string to interpret as string or expression to a string.</param>
         public StringExpression(string expressionOrValue)
-            : base(expressionOrValue)
+            : base(expressionOrValue, AdaptiveExpressionsSerializerContext.Default.String)
         {
         }
 
@@ -45,8 +47,8 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="StringExpression"/> class.
         /// </summary>
         /// <param name="expressionOrValue">value to interpret as a string or expression to a string.</param>
-        public StringExpression(JToken expressionOrValue)
-            : base(expressionOrValue)
+        public StringExpression(JsonNode expressionOrValue)
+            : base(expressionOrValue, AdaptiveExpressionsSerializerContext.Default.String)
         {
         }
 
@@ -55,7 +57,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">expression to a string.</param>
         public StringExpression(Expression expression)
-            : base(expression)
+            : base(expression, AdaptiveExpressionsSerializerContext.Default.String)
         {
         }
 
@@ -79,7 +81,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to a StringExpression instance.
         /// </summary>
         /// <param name="valueOrExpression">The JSON Token to convert.</param>
-        public static implicit operator StringExpression(JToken valueOrExpression) => new StringExpression(valueOrExpression);
+        public static implicit operator StringExpression(JsonNode valueOrExpression) => new StringExpression(valueOrExpression);
 
         /// <summary>
         /// Converts an Expression instance to a StringExpression instance.
@@ -103,7 +105,7 @@ namespace AdaptiveExpressions.Properties
                 return;
             }
 
-            var stringOrExpression = (value as string) ?? (value as JValue)?.Value as string;
+            var stringOrExpression = (value as string) ?? (value as JsonValue)?.ToString() as string;
             if (stringOrExpression != null)
             {
                 // if it starts with = it always is an expression
@@ -119,7 +121,9 @@ namespace AdaptiveExpressions.Properties
                 }
 
                 // keep the string as quoted expression, which will be literal unless string interpolation is used.
+#pragma warning disable CA1307 // Specify StringComparison
                 this.ExpressionText = $"=`{stringOrExpression.Replace("`", "\\`")}`";
+#pragma warning restore CA1307 // Specify StringComparison
                 return;
             }
         }

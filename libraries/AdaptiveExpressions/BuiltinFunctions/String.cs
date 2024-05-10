@@ -2,10 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Text.Json;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -30,7 +29,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         private static EvaluateExpressionDelegate Evaluator()
         {
             return FunctionUtils.ApplyWithOptionsAndError(
-                (args, state, options) => 
+                (args, options) => 
                 {
                     string error = null;
                     string result = null;
@@ -58,17 +57,9 @@ namespace AdaptiveExpressions.BuiltinFunctions
                         {
                             result = System.Text.Encoding.UTF8.GetString(byteArr);
                         }
-                        else if (args[0] is bool)
-                        {
-                            result = ((bool)args[0]) ? "true" : "false";
-                        }
-                        else if (args[0] == null)
-                        {
-                            result = "null";
-                        }
                         else
                         {
-                            result = state.JsonSerializeToString(args[0]).TrimStart('"').TrimEnd('"');
+                            result = JsonConvert.SerializeObject(args[0], new JsonSerializerSettings { MaxDepth = null }).TrimStart('"').TrimEnd('"');
                         }
                     }
 

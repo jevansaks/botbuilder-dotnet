@@ -62,7 +62,6 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
                         if (error == null)
                         {
-                            // TODO: The ToString here is dubious. Why can't we pass around DateTime as itself?
                             value = Convert.ToDateTime(value, CultureInfo.InvariantCulture).ToString(format, locale);
                         }
                     }

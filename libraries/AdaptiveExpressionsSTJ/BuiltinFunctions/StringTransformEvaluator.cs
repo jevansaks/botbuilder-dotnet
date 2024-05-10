@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using AdaptiveExpressions.Memory;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {

@@ -2,8 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using System.Text.Json.Nodes;
-using AdaptiveExpressions.Memory;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -22,7 +21,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         {
         }
 
-        private static (object, string) Evaluator(Expression expression, IMemory state, Options options)
+        private static (object, string) Evaluator(Expression expression, object state, Options options)
         {
             object result = null;
             string error;
@@ -35,18 +34,18 @@ namespace AdaptiveExpressions.BuiltinFunctions
                     var tempList = new List<object>();
                     for (var i = 0; i < list.Count; i++)
                     {
-                        tempList.Add(MakeIndexEntry<object>(i, list[i]));
+                        tempList.Add(new { index = i, value = list[i] });
                     }
 
                     result = tempList;
                 }
-                else if (instance is JsonObject jobj)
+                else if (instance is JObject jobj)
                 {
                     result = Object2List(jobj);
                 }
-                else if (state.SerializeToNode(instance) is JsonObject jsonObject)
+                else if (FunctionUtils.ConvertToJToken(instance) is JObject jobject)
                 {
-                    result = Object2List(jsonObject);
+                    result = Object2List(jobject);
                 }
                 else
                 {
@@ -57,24 +56,15 @@ namespace AdaptiveExpressions.BuiltinFunctions
             return (result, error);
         }
 
-        private static List<object> Object2List(JsonObject jobj)
+        private static List<object> Object2List(JObject jobj)
         {
             var tempList = new List<object>();
             foreach (var item in jobj)
             {
-                tempList.Add(MakeIndexEntry<JsonNode>(item.Key, item.Value));
+                tempList.Add(new { index = item.Key, value = item.Value });
             }
 
             return tempList;
-        }
-
-        private static Dictionary<string, TValue> MakeIndexEntry<TValue>(TValue index, TValue value)
-        {
-            return new Dictionary<string, TValue>
-            {
-                { "index", index },
-                { "value", value }
-            };
         }
     }
 }

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Text.Json.Nodes;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -23,7 +23,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
         private static EvaluateExpressionDelegate Evaluator()
         {
-            return FunctionUtils.Apply(args => args[0] != null && !(args[0] is JsonValue) && args[0].GetType().IsValueType == false && args[0].GetType() != typeof(string));
+            return FunctionUtils.Apply(args => args[0] != null && !(args[0] is JValue) && args[0].GetType().IsValueType == false && args[0].GetType() != typeof(string));
         }
     }
 }

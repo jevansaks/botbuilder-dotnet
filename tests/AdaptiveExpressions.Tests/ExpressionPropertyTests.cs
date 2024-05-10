@@ -8,24 +8,19 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 using AdaptiveExpressions;
 using AdaptiveExpressions.Converters;
-using AdaptiveExpressions.Memory;
 using AdaptiveExpressions.Properties;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
 {
-    /// <summary>
-    /// ExpressionProperty tests class.
-    /// </summary>
-    public partial class ExpressionPropertyTests
+    public class ExpressionPropertyTests
     {
-        private Anonymous3 data = new Anonymous3
+        private object data = new
         {
             test = "hello",
             T = true,
@@ -41,19 +36,19 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             FloatNum = 3.1F,
             DoubleNum = 3.1D,
             StrArr = new List<string>() { "a", "b", "c" },
-            Obj = new Anonymous4 { x = "yo", y = 42 }
+            Obj = new { x = "yo", y = 42 }
         };
 
         [Fact]
         public void ExpressionPropertyTests_ValueTests()
         {
-            TestExpressionPropertyWithValue<byte>("1", 1, TestSerializerContext.Default.Byte);
-            TestExpressionPropertyWithValue<short>("2", 2, TestSerializerContext.Default.Int16);
-            TestExpressionPropertyWithValue<ushort>("3", 3, TestSerializerContext.Default.UInt16);
-            TestExpressionPropertyWithValue<uint>("5", 5, TestSerializerContext.Default.UInt32);
-            TestExpressionPropertyWithValue<long>("6", 6, TestSerializerContext.Default.Int64);
-            TestExpressionPropertyWithValue<ulong>("7", 7, TestSerializerContext.Default.UInt64);
-            TestExpressionPropertyWithValue<double>("3.1", 3.1D, TestSerializerContext.Default.Double);
+            TestExpressionPropertyWithValue<byte>("1", 1);
+            TestExpressionPropertyWithValue<short>("2", 2);
+            TestExpressionPropertyWithValue<ushort>("3", 3);
+            TestExpressionPropertyWithValue<uint>("5", 5);
+            TestExpressionPropertyWithValue<long>("6", 6);
+            TestExpressionPropertyWithValue<ulong>("7", 7);
+            TestExpressionPropertyWithValue<double>("3.1", 3.1D);
         }
 
         [Fact]
@@ -65,52 +60,41 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
         [Fact]
         public void ExpressionPropertyTests_JObjectBindingTests()
         {
-            TestWithData(JsonSerializer.SerializeToNode(data, TestSerializerContext.Default.Anonymous3));
+            TestWithData(JObject.FromObject(data));
         }
 
         private void TestWithData(object data)
         {
-            TestExpressionPropertyWithValue<byte>("ByteNum", 1, data, TestSerializerContext.Default.Byte);
-            TestExpressionPropertyWithValue<byte>("=ByteNum", 1, data, TestSerializerContext.Default.Byte);
+            TestExpressionPropertyWithValue<byte>("ByteNum", 1, data);
+            TestExpressionPropertyWithValue<byte>("=ByteNum", 1, data);
 
-            TestExpressionPropertyWithValue<short>("ShortNum", 2, data, TestSerializerContext.Default.Int16);
-            TestExpressionPropertyWithValue<short>("=ShortNum", 2, data, TestSerializerContext.Default.Int16);
+            TestExpressionPropertyWithValue<short>("ShortNum", 2, data);
+            TestExpressionPropertyWithValue<short>("=ShortNum", 2, data);
 
-            TestExpressionPropertyWithValue<ushort>("UShortNum", 3, data, TestSerializerContext.Default.UInt16);
-            TestExpressionPropertyWithValue<ushort>("=UShortNum", 3, data, TestSerializerContext.Default.UInt16);
+            TestExpressionPropertyWithValue<ushort>("UShortNum", 3, data);
+            TestExpressionPropertyWithValue<ushort>("=UShortNum", 3, data);
 
-            TestExpressionPropertyWithValue<uint>("UIntNum", 5, data, TestSerializerContext.Default.UInt32);
-            TestExpressionPropertyWithValue<uint>("=UIntNum", 5, data, TestSerializerContext.Default.UInt32);
+            TestExpressionPropertyWithValue<uint>("UIntNum", 5, data);
+            TestExpressionPropertyWithValue<uint>("=UIntNum", 5, data);
 
-            TestExpressionPropertyWithValue<ulong>("ULongNum", 7, data, TestSerializerContext.Default.UInt64);
-            TestExpressionPropertyWithValue<ulong>("=ULongNum", 7, data, TestSerializerContext.Default.UInt64);
+            TestExpressionPropertyWithValue<ulong>("ULongNum", 7, data);
+            TestExpressionPropertyWithValue<ulong>("=ULongNum", 7, data);
 
-            TestExpressionPropertyWithValue<double>("DoubleNum", 3.1D, data, TestSerializerContext.Default.Double);
-            TestExpressionPropertyWithValue<double>("=DoubleNum", 3.1D, data, TestSerializerContext.Default.Double);
+            TestExpressionPropertyWithValue<double>("DoubleNum", 3.1D, data);
+            TestExpressionPropertyWithValue<double>("=DoubleNum", 3.1D, data);
 
             var list = new List<string>() { "a", "b", "c" };
-            TestExpressionPropertyWithValue<List<string>>("StrArr", list, data, TestSerializerContext.Default.ListString);
-            TestExpressionPropertyWithValue<List<string>>("=StrArr", list, data, TestSerializerContext.Default.ListString);
+            TestExpressionPropertyWithValue<List<string>>("StrArr", list, data);
+            TestExpressionPropertyWithValue<List<string>>("=StrArr", list, data);
 
-            TestExpressionPropertyWithValue<List<string>>("createArray('a','b','c')", list, data, TestSerializerContext.Default.ListString);
-            TestExpressionPropertyWithValue<List<string>>("=createArray('a','b','c')", list, data, TestSerializerContext.Default.ListString);
+            TestExpressionPropertyWithValue<List<string>>("createArray('a','b','c')", list, data);
+            TestExpressionPropertyWithValue<List<string>>("=createArray('a','b','c')", list, data);
         }
 
-        private void TestExpressionPropertyWithValue<T>(string value, T expected, JsonTypeInfo typeInfo)
+        private void TestExpressionPropertyWithValue<T>(string value, T expected, object memory = null)
         {
-            TestExpressionPropertyWithValue(value, expected, null, typeInfo);
-        }
-
-        private void TestExpressionPropertyWithValue<T>(string value, T expected, object memory, JsonTypeInfo typeInfo)
-        {
-            var ep = new ExpressionProperty<T>(value, typeInfo);
-#if AOT
-#pragma warning disable IL2026, IL3050 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-            var (result, error) = ep.TryGetValue(new SimpleObjectMemory(memory ?? new object(), TestSerializerContext.Default));
-#pragma warning restore IL2026, IL3050 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-#else
+            var ep = new ExpressionProperty<T>(value);
             var (result, error) = ep.TryGetValue(memory ?? new object());
-#endif
             if (result is ICollection)
             {
                 Assert.Equal((ICollection)expected, (ICollection)result);
@@ -135,7 +119,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 }
             };
 
-            var ep = new ExpressionProperty<Foo>("test", TestSerializerContext.Default.Foo);
+            var ep = new ExpressionProperty<Foo>("test");
             var (result, error) = ep.TryGetValue(state);
             Assert.Equal("Test", result.Name);
             Assert.Equal(22, result.Age);
@@ -150,7 +134,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 Age = 22
             };
 
-            var ep = new ExpressionProperty<Foo>(foo, TestSerializerContext.Default.Foo);
+            var ep = new ExpressionProperty<Foo>(foo);
             var (result, error) = ep.TryGetValue(new object());
             Assert.Equal("Test", result.Name);
             Assert.Equal(22, result.Age);
@@ -165,7 +149,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 Age = 22
             };
 
-            var ep = new ExpressionProperty<Foo>(JsonSerializer.SerializeToNode(foo, TestSerializerContext.Default.Foo), TestSerializerContext.Default.Foo);
+            var ep = new ExpressionProperty<Foo>(JObject.FromObject(foo));
             var (result, error) = ep.TryGetValue(new object());
             Assert.Equal("Test", result.Name);
             Assert.Equal(22, result.Age);
@@ -183,9 +167,16 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 }
             };
 
-            var json = JsonSerializer.Serialize(new Anonymous1 { Foo = "test" }, TestSerializerContext.Default.Anonymous1);
+            var json = JsonConvert.SerializeObject(new
+            {
+                Foo = "test"
+            });
+            var settings = new JsonSerializerSettings()
+            {
+                Converters = new List<JsonConverter>() { new ExpressionPropertyConverter<Foo>() }
+            };
 
-            var bar = JsonSerializer.Deserialize<Blat>(json, TestSerializerContext.Default.Blat);
+            var bar = JsonConvert.DeserializeObject<Blat>(json, settings);
             Assert.Equal(typeof(Blat), bar.GetType());
             Assert.Equal(typeof(ExpressionProperty<Foo>), bar.Foo.GetType());
             var (foo, error) = bar.Foo.TryGetValue(state);
@@ -200,18 +191,20 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             {
             };
 
-#pragma warning disable SA1116 // Split parameters should start on line after declaration
-            var json = JsonSerializer.Serialize(new Anonymous5
+            var json = JsonConvert.SerializeObject(new
             {
-                Foo = new Anonymous6
+                Foo = new
                 {
                     Name = "Test",
                     Age = 22
                 }
-            }, TestSerializerContext.Default.Anonymous5);
-#pragma warning restore SA1116 // Split parameters should start on line after declaration
+            });
+            var settings = new JsonSerializerSettings()
+            {
+                Converters = new List<JsonConverter>() { new ExpressionPropertyConverter<Foo>() }
+            };
 
-            var bar = JsonSerializer.Deserialize(json, TestSerializerContext.Default.Blat);
+            var bar = JsonConvert.DeserializeObject<Blat>(json, settings);
             Assert.Equal(typeof(Blat), bar.GetType());
             Assert.Equal(typeof(ExpressionProperty<Foo>), bar.Foo.GetType());
             var (foo, error) = bar.Foo.TryGetValue(state);
@@ -219,7 +212,6 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(22, foo.Age);
         }
 
-#if !AOT
         [Fact]
         public void ExpressionPropertyTests_TestImplicitCasts()
         {
@@ -263,8 +255,8 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal("c", test.Strings.TryGetValue(data).Value[2]);
 
             // test serialization
-            var json = JsonSerializer.Serialize(test, TestSerializerContext.Default.ImplicitCastTest);
-            var test2 = JsonSerializer.Deserialize(json, TestSerializerContext.Default.ImplicitCastTest);
+            var json = JsonConvert.SerializeObject(test, settings: settings);
+            var test2 = JsonConvert.DeserializeObject<ImplicitCastTest>(json, settings: settings);
             Assert.Equal("test2", test2.Str.TryGetValue(data).Value);
             Assert.Equal(113, test2.Int.TryGetValue(data).Value);
             Assert.Equal(13.14D, test2.Number.TryGetValue(data).Value);
@@ -330,7 +322,6 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal(default(bool), testNull.Bool.TryGetValue(data).Value);
             Assert.Equal(default(string[]), testNull.Strings.TryGetValue(data).Value);
         }
-#endif
 
         [Fact]
         public void ExpressionPropertyTests_StringExpression()
@@ -342,7 +333,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             var str = new StringExpression("test");
             Assert.Equal("=`test`", str.ExpressionText);
             Assert.Null(str.Value);
-            Assert.Equal(str.ToString(), RoundTripSerialize(str, TestSerializerContext.Default.StringExpression).ToString());
+            Assert.Equal(str.ToString(), JsonConvert.DeserializeObject<StringExpression>(JsonConvert.SerializeObject(str, settings: settings), settings: settings).ToString());
             var (result, error) = str.TryGetValue(data);
             Assert.Equal("test", result);
             Assert.Null(error);
@@ -350,7 +341,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             str = new StringExpression("=test");
             Assert.Equal("=test", str.ExpressionText);
             Assert.Null(str.Value);
-            Assert.Equal(str.ToString(), RoundTripSerialize(str, TestSerializerContext.Default.StringExpression).ToString());
+            Assert.Equal(str.ToString(), JsonConvert.DeserializeObject<StringExpression>(JsonConvert.SerializeObject(str, settings: settings), settings: settings).ToString());
             (result, error) = str.TryGetValue(data);
             Assert.Equal("joe", result);
             Assert.Null(error);
@@ -358,7 +349,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             str = new StringExpression("Hello ${test}");
             Assert.Equal("=`Hello ${test}`", str.ExpressionText);
             Assert.Null(str.Value);
-            Assert.Equal(str.ToString(), RoundTripSerialize(str, TestSerializerContext.Default.StringExpression).ToString());
+            Assert.Equal(str.ToString(), JsonConvert.DeserializeObject<StringExpression>(JsonConvert.SerializeObject(str, settings: settings), settings: settings).ToString());
             (result, error) = str.TryGetValue(data);
             Assert.Equal("Hello joe", result);
             Assert.Null(error);
@@ -383,74 +374,65 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal("test //`name", str.TryGetValue(data).Value);
         }
 
-        private T RoundTripSerialize<T>(T value, JsonTypeInfo<T> typeInfo)
-        {
-            return JsonSerializer.Deserialize(JsonSerializer.Serialize(value, typeInfo), typeInfo);
-        }
-
         [Fact]
         public void ExpressionPropertyTests_ValueExpression()
         {
             var data = new
             {
-                test = new Anonymous2 { x = 13 }
+                test = new { x = 13 }
             };
 
-            var val = new ValueExpression("test", TestSerializerContext.Default.Object);
+            var val = new ValueExpression("test");
             Assert.Equal("=`test`", val.ExpressionText);
             Assert.Null(val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.ValueExpression).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<ValueExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             var (result, error) = val.TryGetValue(data);
             Assert.Equal("test", result);
             Assert.Null(error);
 
-            val = new ValueExpression("=test", TestSerializerContext.Default.Object);
+            val = new ValueExpression("=test");
             Assert.Equal("=test", val.ExpressionText);
             Assert.Null(val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.ValueExpression).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<ValueExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
-#pragma warning disable IL2026, IL3050
-            Assert.Equal(JsonSerializer.Serialize(data.test, TestSerializerContext.Default.Anonymous2), JsonSerializer.Serialize(result, TestSerializerContext.Default.Options));
-#pragma warning restore IL2026, IL3050
+            Assert.Equal(JsonConvert.SerializeObject(data.test), JsonConvert.SerializeObject(result));
             Assert.Null(error);
 
-            val = new ValueExpression(data.test, TestSerializerContext.Default.Object);
+            val = new ValueExpression(data.test);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
-            Assert.Equal(JsonSerializer.Serialize(data.test, TestSerializerContext.Default.Anonymous2), RoundTripSerialize(val, TestSerializerContext.Default.ValueExpression).ToString());
+            Assert.Equal(JsonConvert.SerializeObject(data.test, settings), JsonConvert.DeserializeObject<ValueExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
-#pragma warning disable IL2026, IL3050
-            Assert.Equal(JsonSerializer.Serialize(data.test, TestSerializerContext.Default.Anonymous2), JsonSerializer.Serialize(result, TestSerializerContext.Default.Options));
-#pragma warning restore IL2026, IL3050
+            Assert.Equal(JsonConvert.SerializeObject(data.test), JsonConvert.SerializeObject(result));
             Assert.Null(error);
 
-            val = new ValueExpression("Hello ${test.x}", TestSerializerContext.Default.Object);
+            val = new ValueExpression("Hello ${test.x}");
             Assert.Equal("=`Hello ${test.x}`", val.ExpressionText);
             Assert.Null(val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.ValueExpression).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<ValueExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.Equal("Hello 13", result);
             Assert.Null(error);
 
             // slashes are the chars
-            val = new ValueExpression("c:\\test\\test\\test", TestSerializerContext.Default.Object);
+            val = new ValueExpression("c:\\test\\test\\test");
             (result, error) = val.TryGetValue(data);
             Assert.Equal("c:\\test\\test\\test", result);
             Assert.Null(error);
 
             // tabs are the chars
-            val = new ValueExpression("c:\test\test\test", TestSerializerContext.Default.Object);
+            val = new ValueExpression("c:\test\test\test");
             (result, error) = val.TryGetValue(data);
             Assert.Equal("c:\test\test\test", result);
             Assert.Null(error);
 
             // test backtick in valueExpression
-            val = new ValueExpression("name `backtick", TestSerializerContext.Default.Object);
+            val = new ValueExpression("name `backtick");
             (result, error) = val.TryGetValue(data);
             Assert.Equal("name `backtick", result);
             Assert.Null(error);
 
-            val = new ValueExpression("name \\`backtick", TestSerializerContext.Default.Object);
+            val = new ValueExpression("name \\`backtick");
             (result, error) = val.TryGetValue(data);
             Assert.Equal("name \\`backtick", result);
             Assert.Null(error);
@@ -467,7 +449,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             var val = new BoolExpression("true");
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(bool), val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.BoolExpression).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<BoolExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             var (result, error) = val.TryGetValue(data);
             Assert.True(result);
             Assert.Null(error);
@@ -475,7 +457,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             val = new BoolExpression("=true");
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(bool), val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.BoolExpression).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<BoolExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.True(result);
             Assert.Null(error);
@@ -483,7 +465,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             val = new BoolExpression(true);
             Assert.Null(val.ExpressionText);
             Assert.True(val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.BoolExpression).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<BoolExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.True(result);
             Assert.Null(error);
@@ -491,7 +473,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             val = new BoolExpression("=test");
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(bool), val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.BoolExpression).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<BoolExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.True(result);
             Assert.Null(error);
@@ -505,50 +487,50 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 test = TestEnum.Two
             };
 
-            var val = new EnumExpression<TestEnum>("three", TestSerializerContext.Default.TestEnum);
+            var val = new EnumExpression<TestEnum>("three");
             Assert.Null(val.ExpressionText);
             Assert.Equal(TestEnum.Three, val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<EnumExpression<TestEnum>>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             var (result, error) = val.TryGetValue(data);
             Assert.Equal(TestEnum.Three, result);
             Assert.Null(error);
 
-            val = new EnumExpression<TestEnum>("=three", TestSerializerContext.Default.TestEnum);
+            val = new EnumExpression<TestEnum>("=three");
             Assert.Null(val.ExpressionText);
             Assert.Equal(TestEnum.Three, val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<EnumExpression<TestEnum>>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.Equal(TestEnum.Three, result);
             Assert.Null(error);
 
-            val = new EnumExpression<TestEnum>("=test", TestSerializerContext.Default.TestEnum);
+            val = new EnumExpression<TestEnum>("=test");
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(TestEnum), val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<EnumExpression<TestEnum>>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.Equal(TestEnum.Two, result);
             Assert.Null(error);
 
-            val = new EnumExpression<TestEnum>(TestEnum.Three, TestSerializerContext.Default.TestEnum);
+            val = new EnumExpression<TestEnum>(TestEnum.Three);
             Assert.Null(val.ExpressionText);
             Assert.Equal(TestEnum.Three, val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<EnumExpression<TestEnum>>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.Equal(TestEnum.Three, result);
             Assert.Null(error);
 
-            val = new EnumExpression<TestEnum>("garbage", TestSerializerContext.Default.TestEnum);
+            val = new EnumExpression<TestEnum>("garbage");
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(TestEnum), val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<EnumExpression<TestEnum>>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.Equal(default(TestEnum), result);
             Assert.Null(error);
 
-            val = new EnumExpression<TestEnum>("=sum(garbage)", TestSerializerContext.Default.TestEnum);
+            val = new EnumExpression<TestEnum>("=sum(garbage)");
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(TestEnum), val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, TestSerializerContext.Default.EnumExpressionTestEnum).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<EnumExpression<TestEnum>>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.Equal(default(TestEnum), result);
             Assert.NotNull(error);
@@ -557,16 +539,16 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
         [Fact]
         public void ExpressionPropertyTests_IntExpression()
         {
-            TestNumberExpression<IntExpression, int>(new IntExpression(), 13, TestSerializerContext.Default.IntExpression);
+            TestNumberExpression<IntExpression, int>(new IntExpression(), 13);
         }
 
         [Fact]
         public void ExpressionPropertyTests_FloatExpression()
         {
-            TestNumberExpression<NumberExpression, double>(new NumberExpression(), 3.14D, TestSerializerContext.Default.NumberExpression);
+            TestNumberExpression<NumberExpression, double>(new NumberExpression(), 3.14D);
         }
 
-        private void TestNumberExpression<TExpression, TValue>(TExpression val, TValue expected, JsonTypeInfo<TExpression> typeInfo)
+        private void TestNumberExpression<TExpression, TValue>(TExpression val, TValue expected)
             where TExpression : ExpressionProperty<TValue>, new()
         {
             var data = new
@@ -577,7 +559,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             val.SetValue("test");
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(TValue), val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, typeInfo).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<TExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             var (result, error) = val.TryGetValue(data);
             Assert.Equal(expected, result);
             Assert.Null(error);
@@ -585,7 +567,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             val.SetValue("=test");
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(TValue), val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, typeInfo).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<TExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.Equal(expected, result);
             Assert.Null(error);
@@ -593,7 +575,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             val.SetValue($"{expected}");
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(TValue), val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, typeInfo).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<TExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.Equal(expected, result);
             Assert.Null(error);
@@ -601,7 +583,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             val.SetValue($"={expected}");
             Assert.NotNull(val.ExpressionText);
             Assert.Equal(default(TValue), val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, typeInfo).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<TExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.Equal(expected, result);
             Assert.Null(error);
@@ -609,7 +591,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             val.SetValue(expected);
             Assert.Null(val.ExpressionText);
             Assert.Equal(expected, val.Value);
-            Assert.Equal(val.ToString(), RoundTripSerialize(val, typeInfo).ToString());
+            Assert.Equal(val.ToString(), JsonConvert.DeserializeObject<TExpression>(JsonConvert.SerializeObject(val, settings: settings), settings: settings).ToString());
             (result, error) = val.TryGetValue(data);
             Assert.Equal(expected, result);
             Assert.Null(error);
@@ -627,7 +609,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 }
             };
 
-            var val = new ObjectExpression<Foo>("test", TestSerializerContext.Default.Foo);
+            var val = new ObjectExpression<Foo>("test");
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             var (result, error) = val.TryGetValue(data);
@@ -635,7 +617,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal("joe", result.Name);
             Assert.Null(error);
 
-            val = new ObjectExpression<Foo>("=test", TestSerializerContext.Default.Foo);
+            val = new ObjectExpression<Foo>("=test");
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             (result, error) = val.TryGetValue(data);
@@ -643,7 +625,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal("joe", result.Name);
             Assert.Null(error);
 
-            val = new ObjectExpression<Foo>(data.test, TestSerializerContext.Default.Foo);
+            val = new ObjectExpression<Foo>(data.test);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
@@ -651,7 +633,7 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             Assert.Equal("joe", result.Name);
             Assert.Null(error);
 
-            val = new ObjectExpression<Foo>(JsonSerializer.SerializeToNode(data.test, TestSerializerContext.Default.Foo), TestSerializerContext.Default.Foo);
+            val = new ObjectExpression<Foo>(JObject.FromObject(data.test));
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
@@ -674,32 +656,32 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 }
             };
 
-            var val = new ArrayExpression<string>("test.Strings", TestSerializerContext.Default.ListString);
+            var val = new ArrayExpression<string>("test.Strings");
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             var (result, error) = val.TryGetValue(data);
-            Assert.Equal(JsonSerializer.Serialize(data.test.Strings, TestSerializerContext.Default.ListString), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListString));
+            Assert.Equal(JsonConvert.SerializeObject(data.test.Strings, settings), JsonConvert.SerializeObject(result, settings: settings));
             Assert.Equal(data.test.Strings, result);
 
-            val = new ArrayExpression<string>("=test.Strings", TestSerializerContext.Default.ListString);
+            val = new ArrayExpression<string>("=test.Strings");
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             (result, error) = val.TryGetValue(data);
-            Assert.Equal(JsonSerializer.Serialize(data.test.Strings, TestSerializerContext.Default.ListString), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListString));
+            Assert.Equal(JsonConvert.SerializeObject(data.test.Strings, settings), JsonConvert.SerializeObject(result, settings: settings));
             Assert.Equal(data.test.Strings, result);
 
-            val = new ArrayExpression<string>(data.test.Strings, TestSerializerContext.Default.ListString);
+            val = new ArrayExpression<string>(data.test.Strings);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
-            Assert.Equal(JsonSerializer.Serialize(data.test.Strings, TestSerializerContext.Default.ListString), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListString));
+            Assert.Equal(JsonConvert.SerializeObject(data.test.Strings, settings), JsonConvert.SerializeObject(result, settings: settings));
             Assert.Equal(data.test.Strings, result);
 
-            val = new ArrayExpression<string>(data.test.Strings, TestSerializerContext.Default.ListString);
+            val = new ArrayExpression<string>(data.test.Strings);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
-            Assert.Equal(JsonSerializer.Serialize(data.test.Strings, TestSerializerContext.Default.ListString), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListString));
+            Assert.Equal(JsonConvert.SerializeObject(data.test.Strings, settings), JsonConvert.SerializeObject(result, settings: settings));
             Assert.Equal(data.test.Strings, result);
         }
 
@@ -721,99 +703,54 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
                 }
             };
 
-            var val = new ArrayExpression<Foo>("test.Objects", TestSerializerContext.Default.ListFoo);
+            var val = new ArrayExpression<Foo>("test.Objects");
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             var (result, error) = val.TryGetValue(data);
             Assert.Equal(data.test.Objects, result);
 
-            val = new ArrayExpression<Foo>("=test.Objects", TestSerializerContext.Default.ListFoo);
+            val = new ArrayExpression<Foo>("=test.Objects");
             Assert.NotNull(val.ExpressionText);
             Assert.Null(val.Value);
             (result, error) = val.TryGetValue(data);
             Assert.Equal(data.test.Objects, result);
 
-            val = new ArrayExpression<Foo>(data.test.Objects, TestSerializerContext.Default.ListFoo);
+            val = new ArrayExpression<Foo>(data.test.Objects);
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
-            Assert.Equal(JsonSerializer.Serialize(data.test.Objects, TestSerializerContext.Default.ListFoo), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListFoo));
+            Assert.Equal(JsonConvert.SerializeObject(data.test.Objects, settings), JsonConvert.SerializeObject(result, settings));
 
-            val = new ArrayExpression<Foo>(JsonValue.Create(data.test.Objects, TestSerializerContext.Default.ListFoo), TestSerializerContext.Default.ListFoo);
+            val = new ArrayExpression<Foo>(JArray.FromObject(data.test.Objects));
             Assert.Null(val.ExpressionText);
             Assert.NotNull(val.Value);
             (result, error) = val.TryGetValue(data);
-            Assert.Equal(JsonSerializer.Serialize(data.test.Objects, TestSerializerContext.Default.ListFoo), JsonSerializer.Serialize(result, TestSerializerContext.Default.ListFoo));
+            Assert.Equal(JsonConvert.SerializeObject(data.test.Objects, settings), JsonConvert.SerializeObject(result, settings));
         }
 
-        [JsonSerializable(typeof(byte))]
-        [JsonSerializable(typeof(bool))]
-        [JsonSerializable(typeof(short))]
-        [JsonSerializable(typeof(ushort))]
-        [JsonSerializable(typeof(int))]
-        [JsonSerializable(typeof(uint))]
-        [JsonSerializable(typeof(Blat))]
-        [JsonSerializable(typeof(Foo))]
-        [JsonSerializable(typeof(Anonymous1))]
-        [JsonSerializable(typeof(Anonymous2))]
-        [JsonSerializable(typeof(Anonymous3))]
-        [JsonSerializable(typeof(Anonymous4))]
-        [JsonSerializable(typeof(Anonymous5))]
-        [JsonSerializable(typeof(Anonymous6))]
-        [JsonSerializable(typeof(BoolExpression))]
-        [JsonSerializable(typeof(IntExpression))]
-        [JsonSerializable(typeof(NumberExpression))]
-        [JsonSerializable(typeof(StringExpression))]
-        [JsonSerializable(typeof(ValueExpression))]
-        [JsonSerializable(typeof(ExpressionProperty<short>))]
-        [JsonSerializable(typeof(ExpressionProperty<ushort>))]
-        [JsonSerializable(typeof(ExpressionProperty<uint>))]
-        [JsonSerializable(typeof(ExpressionProperty<ulong>))]
-        [JsonSerializable(typeof(ExpressionProperty<long>))]
-        [JsonSerializable(typeof(ExpressionProperty<double>))]
-        [JsonSerializable(typeof(ExpressionProperty<TestEnum>))]
-        [JsonSerializable(typeof(ExpressionProperty<Foo>))]
-        [JsonSerializable(typeof(List<object>))]
-        [JsonSerializable(typeof(List<string>))]
-        [JsonSerializable(typeof(List<Foo>))]
-        [JsonSerializable(typeof(ImplicitCastTest))]
-        [JsonSerializable(typeof(TestEnum))]
-        [JsonSerializable(typeof(JsonObject))]
-        [JsonSerializable(typeof(JsonArray))]
-        [JsonSourceGenerationOptions(
-            WriteIndented = true,
-#pragma warning disable SA1118 // Parameter should not span multiple lines
-            Converters =
-            [
-                typeof(ExpressionPropertyConverter<short>),
-                typeof(ExpressionPropertyConverter<ushort>),
-                typeof(ExpressionPropertyConverter<uint>),
-                typeof(ExpressionPropertyConverter<ulong>),
-                typeof(ExpressionPropertyConverter<long>),
-                typeof(ExpressionPropertyConverter<double>),
-                typeof(ExpressionPropertyConverter<Foo>),
-                typeof(EnumExpressionConverter<TestEnum>),
-            ])]
-#pragma warning restore SA1118 // Parameter should not span multiple lines
-        private partial class TestSerializerContext : JsonSerializerContext
+        private JsonSerializerSettings settings = new JsonSerializerSettings()
         {
-        }
+            Formatting = Formatting.Indented,
+            Converters = new List<JsonConverter>()
+                {
+                     new StringExpressionConverter(),
+                     new ValueExpressionConverter(),
+                     new BoolExpressionConverter(),
+                     new IntExpressionConverter(),
+                     new NumberExpressionConverter(),
+                     new ExpressionPropertyConverter<short>(),
+                     new ExpressionPropertyConverter<ushort>(),
+                     new ExpressionPropertyConverter<uint>(),
+                     new ExpressionPropertyConverter<ulong>(),
+                     new ExpressionPropertyConverter<long>(),
+                     new ExpressionPropertyConverter<double>(),
+                     new EnumExpressionConverter<TestEnum>(),
+                }
+        };
 
         private class Blat
         {
             public ExpressionProperty<Foo> Foo { get; set; }
-        }
-
-        private class Anonymous1
-        {
-            public string Foo { get; set; }
-        }
-
-        private class Anonymous2
-        {
-#pragma warning disable SA1300 // Element should begin with upper-case letter
-            public int x { get; set; }
-#pragma warning restore SA1300 // Element should begin with upper-case letter
         }
 
         private class Foo
@@ -851,53 +788,12 @@ namespace Microsoft.Bot.Builder.Dialogs.Adaptive.Tests
             public ArrayExpression<string> Strings { get; set; }
         }
 
-        //[JsonConverter(typeof(StringEnumConverter), /*camelCase*/ true)]
+        [JsonConverter(typeof(StringEnumConverter), /*camelCase*/ true)]
         public enum TestEnum
         {
             One,
             Two,
             Three
         }
-
-#pragma warning disable SA1300, SA1516 // Element should begin with upper-case letter
-
-        private class Anonymous3
-        {
-            public string test { get; set; }
-            public bool T { get; set; }
-            public TestEnum testEnum { get; set; }
-            public bool F { get; set; }
-            public int ByteNum { get; set; }
-            public int ShortNum { get; set; }
-            public int UShortNum { get; set; }
-            public int IntNum { get; set; }
-            public int UIntNum { get; set; }
-            public int LongNum { get; set; }
-            public int ULongNum { get; set; }
-            public float FloatNum { get; set; }
-            public double DoubleNum { get; set; }
-            public List<string> StrArr { get; set; }
-            public Anonymous4 Obj { get; set; }
-        }
-
-        private class Anonymous4
-        {
-            public string x { get; set; }
-            public int y { get; set; }
-        }
-
-        private class Anonymous5
-        {
-            public Anonymous6 Foo { get; set; }
-        }
-
-        private class Anonymous6
-        {
-            public string Name { get; set; }
-            public int Age { get; set; }
-        }
-
-#pragma warning restore SA1300, SA1516 // Element should begin with upper-case letter
-
     }
 }

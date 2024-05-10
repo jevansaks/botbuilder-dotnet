@@ -35,9 +35,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                             string newStr = FunctionUtils.ParseStringOrNull(args[2]);
                             if (error == null)
                             {
-#pragma warning disable CA1307 // Specify StringComparison
                                 result = inputStr.Replace(oldStr, newStr);
-#pragma warning restore CA1307 // Specify StringComparison
                             }
 
                             return (result, error);

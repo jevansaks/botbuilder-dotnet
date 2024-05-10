@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -22,9 +22,9 @@ namespace AdaptiveExpressions.BuiltinFunctions
         private static EvaluateExpressionDelegate Evaluator()
         {
             return FunctionUtils.Apply(
-                (args) =>
+                (args, state) =>
                 {
-                    var result = JsonConvert.SerializeObject(args[0], new JsonSerializerSettings { MaxDepth = null });
+                    var result = state.JsonSerializeToString(args[0]);
                     return result;
                 });
         }

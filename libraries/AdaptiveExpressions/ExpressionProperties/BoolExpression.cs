@@ -2,10 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
-
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using AdaptiveExpressions.Converters;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -20,7 +19,6 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="BoolExpression"/> class.
         /// </summary>
         public BoolExpression()
-            : base(AdaptiveExpressionsSerializerContext.Default.Boolean)
         {
         }
 
@@ -29,7 +27,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="value">bool value.</param>
         public BoolExpression(bool value) 
-            : base(value, AdaptiveExpressionsSerializerContext.Default.Boolean)
+            : base(value)
         {
         }
 
@@ -38,7 +36,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">expression to resolve to bool.</param>
         public BoolExpression(string expression)
-            : base(expression, AdaptiveExpressionsSerializerContext.Default.Boolean)
+            : base(expression)
         {
         }
 
@@ -47,7 +45,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">expression to resolve to bool.</param>
         public BoolExpression(Expression expression)
-            : base(expression, AdaptiveExpressionsSerializerContext.Default.Boolean)
+            : base(expression)
         {
         }
 
@@ -64,8 +62,8 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="BoolExpression"/> class.
         /// </summary>
         /// <param name="expressionOrValue">expression or value to resolve to bool.</param>
-        public BoolExpression(JsonNode expressionOrValue)
-            : base(expressionOrValue, AdaptiveExpressionsSerializerContext.Default.Boolean)
+        public BoolExpression(JToken expressionOrValue)
+            : base(expressionOrValue)
         {
         }
 
@@ -92,7 +90,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to BoolExpression.
         /// </summary>
         /// <param name="expressionOrValue">The JSON Token to Convert.</param>
-        public static implicit operator BoolExpression(JsonNode expressionOrValue) => new BoolExpression(expressionOrValue);
+        public static implicit operator BoolExpression(JToken expressionOrValue) => new BoolExpression(expressionOrValue);
 #pragma warning restore CA2225 // Operator overloads have named alternates
     }
 }

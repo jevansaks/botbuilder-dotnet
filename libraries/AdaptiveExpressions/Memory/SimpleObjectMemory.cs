@@ -4,37 +4,29 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 using AdaptiveExpressions.Properties;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Memory
 {
     /// <summary>
     /// Simple implement of <see cref="IMemory"/>.
     /// </summary>
-    [RequiresDynamicCode("SimpleObjectMemory requires reflection and is not AOT compatible")]
-    [RequiresUnreferencedCode("SimpleObjectMemory requires reflection and is not AOT compatible")]
     public class SimpleObjectMemory : IMemory
     {
         private object _memory = null;
-        private JsonSerializerContext _serializerContext = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SimpleObjectMemory"/> class.
         /// This wraps a simple object as IMemory.
         /// </summary>
         /// <param name="memory">The object to wrap.</param>
-        /// <param name="serializerContext">optional JsonSerializerContext for serialization.</param>
-        public SimpleObjectMemory(object memory, JsonSerializerContext serializerContext = null)
+        public SimpleObjectMemory(object memory)
         {
             _memory = memory;
-            _serializerContext = serializerContext;
         }
 
         /// <summary>
@@ -51,12 +43,16 @@ namespace AdaptiveExpressions.Memory
                 return false;
             }
 
+            var parts = path.Split(".[]".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x => x.Trim('\'', '"'))
+                            .ToArray();
+
             var curScope = _memory;
 
-            foreach (var part in new SimplePathEnumerator(path))
+            foreach (var part in parts)
             {
                 string error = null;
-                if (part.Index is int idx && FunctionUtils.TryParseList(curScope, out var li))
+                if (int.TryParse(part, out var idx) && FunctionUtils.TryParseList(curScope, out var li))
                 {
                     (value, error) = FunctionUtils.AccessIndex(li, idx);
                     if (error != null)
@@ -66,7 +62,7 @@ namespace AdaptiveExpressions.Memory
                 }
                 else
                 {
-                    if (!FunctionUtils.TryAccessProperty(curScope, part.Part, out value))
+                    if (!FunctionUtils.TryAccessProperty(curScope, part, out value))
                     {
                         return false;
                     }
@@ -77,7 +73,7 @@ namespace AdaptiveExpressions.Memory
 
             if (value is IExpressionProperty ep)
             {
-                value = ep.GetObject(MemoryFactory.Create(_memory));
+                value = ep.GetObject(_memory);
             }
 
             return true;
@@ -101,87 +97,83 @@ namespace AdaptiveExpressions.Memory
                 return;
             }
 
+            var parts = path.Split(".[]".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x => x.Trim('\'', '"'))
+                            .ToArray();
+
             var curScope = _memory;
             var curPath = string.Empty; // valid path so far
             string error = null;
 
             // find the 2nd last value, the container
-            foreach (var part in new SimplePathEnumerator(path))
+            for (var i = 0; i < parts.Length - 1; i++)
             {
-                // For all parts until the list, evaluate as path
-                if (!part.IsLast)
+                if (int.TryParse(parts[i], out var index) && FunctionUtils.TryParseList(curScope, out var li))
                 {
-                    if (part.Index is int index && FunctionUtils.TryParseList(curScope, out var li))
+                    curPath += $"[{parts[i]}]";
+                    (curScope, error) = FunctionUtils.AccessIndex(li, index);
+                }
+                else
+                {
+                    curPath += $".{parts[i]}";
+                    if (FunctionUtils.TryAccessProperty(curScope, parts[i], out var newScope))
                     {
-                        curPath += $"[{part.Part}]";
-                        (curScope, error) = FunctionUtils.AccessIndex(li, index);
+                        curScope = newScope;
                     }
                     else
-                    {
-                        curPath += $".{part.Part}";
-                        if (FunctionUtils.TryAccessProperty(curScope, part.Part, out var newScope))
-                        {
-                            curScope = newScope;
-                        }
-                        else
-                        {
-                            return;
-                        }
-                    }
-
-                    if (error != null || curScope == null)
                     {
                         return;
                     }
                 }
-                else
-                {
-                    // set the last value
-                    if (part.Index is int idx)
-                    {
-                        if (FunctionUtils.TryAsList(curScope, out var li))
-                        {
-                            var count = FunctionUtils.GetListCount(li);
-                            if (idx > count)
-                            {
-                                error = $"{idx} index out of range";
-                            }
-                            else if (idx == count)
-                            {
-                                // expand for one
-                                FunctionUtils.AppendToList(li, value);
-                            }
-                            else
-                            {
-                                FunctionUtils.SetIndex(li, idx, value);
-                            }
-                        }
-                        else
-                        {
-                            error = $"set value for an index to a non-list object";
-                        }
 
-                        if (error != null)
-                        {
-                            return;
-                        }
+                if (error != null || curScope == null)
+                {
+                    return;
+                }
+            }
+
+            // set the last value
+            if (int.TryParse(parts.Last(), out var idx))
+            {
+                if (FunctionUtils.TryParseList(curScope, out var li))
+                {
+                    if (li is JArray)
+                    {
+                        value = JToken.FromObject(value);
+                    }
+
+                    if (idx > li.Count)
+                    {
+                        error = $"{idx} index out of range";
+                    }
+                    else if (idx == li.Count)
+                    {
+                        // expand for one
+                        li.Add(value);
                     }
                     else
                     {
-                        (_, error) = SetProperty(curScope, part.Part, value);
-                        if (error != null)
-                        {
-                            return;
-                        }
+                        li[idx] = value;
                     }
                 }
-            }
-        }
+                else
+                {
+                    error = $"set value for an index to a non-list object";
+                }
 
-        /// <inheritdoc/>
-        public IMemory CreateMemoryFrom(object value)
-        {
-            return MemoryFactory.Create(value);
+                if (error != null)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                (_, error) = SetProperty(curScope, parts.Last(), value);
+                if (error != null)
+                {
+                    return;
+                }
+            }
         }
 
         /// <summary>
@@ -193,31 +185,17 @@ namespace AdaptiveExpressions.Memory
             return ToString();
         }
 
-        /// <inheritdoc/>
-        public string JsonSerializeToString(object value)
-        {
-            return JsonSerializer.Serialize(value, _serializerContext?.Options);
-        }
-
-        /// <inheritdoc/>
-        public JsonNode SerializeToNode(object value)
-        {
-            return value == null ? null : JsonSerializer.SerializeToNode(value, _serializerContext?.Options);
-        }
-
-        /// <inheritdoc/>
-        public object ConvertTo(Type type, object value)
-        {
-            return JsonSerializer.Deserialize(JsonSerializer.SerializeToNode(value, _serializerContext?.Options), type, _serializerContext?.Options);
-        }
-
         /// <summary>
         /// Returns a string that represents the current object.
         /// </summary>
         /// <returns>A string value.</returns>
         public override string ToString()
         {
-            return JsonSerializer.Serialize(_memory, new JsonSerializerOptions(_serializerContext?.Options) { ReferenceHandler = ReferenceHandler.IgnoreCycles });
+            return JsonConvert.SerializeObject(_memory, new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                MaxDepth = null
+            });
         }
 
         private (object result, string error) SetProperty(object instance, string property, object value)
@@ -233,9 +211,9 @@ namespace AdaptiveExpressions.Memory
             {
                 dict[property] = value;
             }
-            else if (instance is JsonObject jobj)
+            else if (instance is JObject jobj)
             {
-                jobj[property] = JsonSerializer.SerializeToNode(value, _serializerContext?.Options);
+                jobj[property] = FunctionUtils.ConvertToJToken(value);
             }
             else
             {

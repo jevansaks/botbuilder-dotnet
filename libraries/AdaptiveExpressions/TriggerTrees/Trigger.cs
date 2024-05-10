@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -138,8 +137,6 @@ namespace AdaptiveExpressions.TriggerTrees
         /// A boolean value indicating  whether there is a member matches.
         /// Returns True if such member exists, otherwise returns False.
         /// </returns>
-        [RequiresUnreferencedCode("Matches uses reflection")]
-        [RequiresDynamicCode("Matches uses reflection")]
         public bool Matches(Clause nodeClause, object state)
         {
             var found = false;

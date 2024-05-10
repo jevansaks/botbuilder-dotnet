@@ -27,7 +27,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             (instance, error) = expression.Children[0].TryEvaluate(state, options);
             if (error == null)
             {
-                var list = FunctionUtils.ConvertToList(instance, state);
+                var list = FunctionUtils.ConvertToList(instance);
                 if (list == null)
                 {
                     error = $"{expression.Children[0]} is not a collection or structure object to run All";

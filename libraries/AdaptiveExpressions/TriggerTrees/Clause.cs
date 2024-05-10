@@ -4,7 +4,6 @@
 namespace AdaptiveExpressions.TriggerTrees
 {
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Runtime.Serialization;
     using System.Text;
@@ -105,9 +104,7 @@ namespace AdaptiveExpressions.TriggerTrees
 
             foreach (var binding in AnyBindings)
             {
-#pragma warning disable CA1305 // Specify IFormatProvider
                 builder.Append($" {binding.Key}->{binding.Value}");
-#pragma warning restore CA1305 // Specify IFormatProvider
             }
         }
 
@@ -221,8 +218,6 @@ namespace AdaptiveExpressions.TriggerTrees
         /// A boolean value indicating  whether the two Clauses are matched.
         /// Returns True if two Clauses are matched, otherwise returns False.
         /// </returns>
-        [RequiresUnreferencedCode("Matches uses reflection")]
-        [RequiresDynamicCode("Matches uses reflection")]
         public bool Matches(Clause clause, object memory)
         {
             var matched = false;

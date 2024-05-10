@@ -2,9 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using AdaptiveExpressions.Memory;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -25,13 +23,13 @@ namespace AdaptiveExpressions.BuiltinFunctions
         private static EvaluateExpressionDelegate Evaluator()
         {
             return FunctionUtils.ApplyWithError(
-                (args, state) =>
+                args =>
                 {
-                    var result = new JsonObject();
+                    var result = new JObject();
 
                     foreach (var arg in args)
                     {
-                        var (list, itemError) = ParseToObjectList(arg, state);
+                        var (list, itemError) = ParseToObjectList(arg);
 
                         if (itemError != null)
                         {
@@ -40,7 +38,10 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
                         foreach (var item in list)
                         {
-                            result.Merge(item);
+                            result.Merge(item, new JsonMergeSettings
+                            {
+                                MergeArrayHandling = MergeArrayHandling.Replace
+                            });
                         }
                     }
 
@@ -48,9 +49,9 @@ namespace AdaptiveExpressions.BuiltinFunctions
                 });
         }
 
-        private static (List<JsonObject>, string) ParseToObjectList(object arg, IMemory state)
+        private static (List<JObject>, string) ParseToObjectList(object arg)
         {
-            var result = new List<JsonObject>();
+            var result = new List<JObject>();
             string error = null;
             if (arg == null)
             {
@@ -58,24 +59,24 @@ namespace AdaptiveExpressions.BuiltinFunctions
             }
             else if (FunctionUtils.TryParseList(arg, out var array))
             {
-                var jsonArray = state.SerializeToNode(array).AsArray();
-                foreach (var node in jsonArray)
+                var jarray = JArray.FromObject(array);
+                foreach (var jtoken in jarray)
                 {
-                    if (node is JsonObject jobj)
+                    if (jtoken is JObject jobj)
                     {
                         result.Add(jobj);
                     }
                     else
                     {
-                        error = $"The argument {node} in array must be a JSON object.";
+                        error = $"The argument {jtoken} in array must be a JSON object.";
                         break;
                     }
                 }
             }
             else
             {
-                var node = state.SerializeToNode(arg);
-                if (node is JsonObject jobj)
+                var jtoken = FunctionUtils.ConvertToJToken(arg);
+                if (jtoken is JObject jobj)
                 {
                     result.Add(jobj);
                 }

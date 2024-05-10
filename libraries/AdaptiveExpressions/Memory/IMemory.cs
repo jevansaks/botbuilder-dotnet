@@ -2,29 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Memory
 {
-    // I propose the following:
-    // * Document the set of allowed input/output types for IMemory to simplify the handling within the evaluation functions
-    //  -OR-
-    // * Allow arbitrary types but add the ConvertToJsonNode & ConvertToList functions to IMemory so that callers do the conversion
-    //
-    // We still need some new helper methods:
-    // * Accessor needs to create an IMemory object from a returned object, so add IMemory.CreateMemoryFrom(object)
-    // * FunctionUtils.SetIndex, AppendToList
-    // * FunctionUtils.LambdaEvaluator -- creates a SimpleObjectMemory
-
-    // Type system rules:
-    // * Primitive types required for IMemory:
-    //    - 
-    // All values returned from IMemory.TryGetValue are passed around opaquely except for:
-    // * Primitive types are unboxed and manipulated by expressions
-    // * Functions that apply to lists will serialize to JsonNode for copying
-
     /// <summary>
     /// Memory interface.
     /// </summary>
@@ -52,40 +32,5 @@ namespace AdaptiveExpressions.Memory
         /// </summary>
         /// <returns>A string indicates the version.</returns>
         string Version();
-
-        /// <summary>
-        /// Create an IMemory from an object that was returned from this IMemory's TryGetValue.
-        /// If upgrading from old AdaptiveExpression implementations, return MemoryFactory.Create(value).
-        /// </summary>
-        /// <param name="value">object to wrap.</param>
-        /// <returns>IMemory.</returns>
-        IMemory CreateMemoryFrom(object value);
-
-        /// <summary>
-        /// Serialize a value sourced from this IMemory into a string.
-        /// If upgrading from old AdaptiveExpression implementations, return JsonSerializer.Serialize(value).
-        /// </summary>
-        /// <param name="value">object to serialize.</param>
-        /// <returns>json string.</returns>
-        string JsonSerializeToString(object value);
-
-        /// <summary>
-        /// Serialize a value sourced from this IMemory into a JsonNode.
-        /// If upgrading from old AdaptiveExpression implementations, return value == null ? null : JsonSerializer.SerializeToNode(value).
-        /// </summary>
-        /// <param name="value">object to serialize.</param>
-        /// <returns>json node.</returns>
-        JsonNode SerializeToNode(object value);
-
-        /// <summary>
-        /// When an expression evaluates to an object that is not the exact type TryEvaluate<![CDATA[<T>]]> needs,
-        /// it asks the IMemory to convert the value to the specific type. The return value will be cast to T so it must be
-        /// of the correct type.
-        /// A default implementation can do JsonSerializer.Deserialize(JsonSerializer.SerializeToNode(value), type).
-        /// </summary>
-        /// <param name="type">type to convert to.</param>
-        /// <param name="value">value to convert.</param>
-        /// <returns>value converted to type.</returns>
-        object ConvertTo(Type type, object value);
     }
 }

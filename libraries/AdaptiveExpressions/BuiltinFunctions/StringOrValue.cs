@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-using AdaptiveExpressions.Memory;
-
 namespace AdaptiveExpressions.BuiltinFunctions
 {
     /// <summary>
@@ -20,7 +18,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         {
         }
 
-        private static (object, string) Evaluator(Expression expression, IMemory state, Options options)
+        private static (object, string) Evaluator(Expression expression, object state, Options options)
         {
             object result = null;
             string error;

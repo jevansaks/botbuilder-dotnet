@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace AdaptiveExpressions.Memory
@@ -15,8 +14,6 @@ namespace AdaptiveExpressions.Memory
         /// </summary>
         /// <param name="obj">Common object.</param>
         /// <returns>IMemory.</returns>
-        [RequiresUnreferencedCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
-        [RequiresDynamicCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
         public static IMemory Create(object obj)
         {
             if (obj != null)

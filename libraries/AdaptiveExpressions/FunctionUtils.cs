@@ -4,19 +4,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization.Metadata;
 using AdaptiveExpressions.Memory;
-using Json.More;
 using Microsoft.Recognizers.Text.DataTypes.TimexExpression;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions
 {
@@ -375,123 +369,13 @@ namespace AdaptiveExpressions
         {
             var isList = false;
             list = null;
-            if (!(value is JsonObject) && value is IList listValue)
+            if (!(value is JObject) && value is IList listValue)
             {
                 list = listValue;
                 isList = true;
             }
-            else if (value is JsonArray jarray)
-            {
-                list = jarray.ToList();
-                isList = true;
-            }
 
             return isList;
-        }
-
-        /// <summary>
-        /// Try to coerce object to IList.
-        /// </summary>
-        /// <param name="value">Value to coerce.</param>
-        /// <param name="list">IList if found.</param>
-        /// <returns>true if found IList.</returns>
-        public static bool TryAsList(object value, out IEnumerable list)
-        {
-            var isList = false;
-            list = null;
-            if (value is IList listValue)
-            {
-                list = listValue;
-                isList = true;
-            }
-            else if (value is JsonArray jarray)
-            {
-                list = jarray;
-                isList = true;
-            }
-
-            return isList;
-        }
-
-        /// <summary>
-        /// Get the count from a List-like thing.
-        /// </summary>
-        /// <param name="list">The list.</param>
-        /// <returns>The count.</returns>
-        /// <exception cref="InvalidOperationException">If the list is not a list.</exception>
-        public static int GetListCount(IEnumerable list)
-        {
-            if (list is IList listValue)
-            {
-                return listValue.Count;
-            }
-            else if (list is JsonArray jarray)
-            {
-                return jarray.Count;
-            }
-
-            throw new InvalidOperationException();
-        }
-
-        /// <summary>
-        /// Get the count from a List-like thing.
-        /// </summary>
-        /// <param name="list">The list.</param>
-        /// <param name="value">The value to append.</param>
-        /// <exception cref="InvalidOperationException">If the list is not a list.</exception>
-        [RequiresDynamicCode("Uses JsonSerializer on unknown types")]
-        [RequiresUnreferencedCode("uses JsonSerializer on unknown types")]
-        public static void AppendToList(IEnumerable list, object value)
-        {
-            if (list is IList ilist)
-            {
-                ilist.Add(value);
-            }
-            else if (list is JsonArray jarray)
-            {
-                JsonValue jvalue = value as JsonValue;
-                if (jvalue == null)
-                {
-                    jvalue = JsonValue.Create(value);
-                }
-
-                jarray.Add(jvalue);
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
-        }
-
-        /// <summary>
-        /// Get the count from a List-like thing.
-        /// </summary>
-        /// <param name="list">The list.</param>
-        /// <param name="idx">The index to set.</param>
-        /// <param name="value">The new value.</param>
-        /// <exception cref="InvalidOperationException">If the list is not a list.</exception>
-        [RequiresDynamicCode("SetIndex uses JsonSerializer on unknown types")]
-        [RequiresUnreferencedCode("SetIndex uses JsonSerializer on unknown types")]
-        public static void SetIndex(IEnumerable list, int idx, object value)
-        {
-            if (list is IList ilist)
-            {
-                ilist[idx] = value;
-            }
-            else if (list is JsonArray jarray)
-            {
-                JsonValue jvalue = value as JsonValue;
-                if (jvalue == null)
-                {
-                    jvalue = JsonValue.Create(value);
-                }
-
-                jarray[idx] = jvalue;
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
         }
 
         /// <summary>
@@ -694,39 +578,6 @@ namespace AdaptiveExpressions
         /// <param name="function">Function to apply.</param>
         /// <param name="verify">Function to check each arg for validity.</param>
         /// <returns>Delegate for evaluating an expression.</returns>
-        public static EvaluateExpressionDelegate Apply(Func<IReadOnlyList<object>, IMemory, object> function, VerifyExpression verify = null)
-            =>
-            (expression, state, options) =>
-            {
-                object value = null;
-                string error = null;
-                IReadOnlyList<object> args;
-                (args, error) = EvaluateChildren(expression, state, options, verify);
-                if (error == null)
-                {
-                    try
-                    {
-                        value = function(args, state);
-                    }
-#pragma warning disable CA1031 // Do not catch general exception types (capture any exception and return it in the error)
-                    catch (Exception e)
-#pragma warning restore CA1031 // Do not catch general exception types
-                    {
-                        error = e.Message;
-                    }
-                }
-
-                value = ResolveValue(value);
-
-                return (value, error);
-            };
-
-        /// <summary>
-        /// Generate an expression delegate that applies function after verifying all children.
-        /// </summary>
-        /// <param name="function">Function to apply.</param>
-        /// <param name="verify">Function to check each arg for validity.</param>
-        /// <returns>Delegate for evaluating an expression.</returns>
         public static EvaluateExpressionDelegate ApplyWithError(Func<IReadOnlyList<object>, (object, string)> function, VerifyExpression verify = null)
             =>
             (expression, state, options) =>
@@ -760,39 +611,6 @@ namespace AdaptiveExpressions
         /// <param name="function">Function to apply.</param>
         /// <param name="verify">Function to check each arg for validity.</param>
         /// <returns>Delegate for evaluating an expression.</returns>
-        public static EvaluateExpressionDelegate ApplyWithError(Func<IReadOnlyList<object>, IMemory, (object, string)> function, VerifyExpression verify = null)
-            =>
-            (expression, state, options) =>
-            {
-                object value = null;
-                string error = null;
-                IReadOnlyList<object> args;
-                (args, error) = EvaluateChildren(expression, state, options, verify);
-                if (error == null)
-                {
-                    try
-                    {
-                        (value, error) = function(args, state);
-                    }
-#pragma warning disable CA1031 // Do not catch general exception types (capture any exception and return it in the error)
-                    catch (Exception e)
-#pragma warning restore CA1031 // Do not catch general exception types
-                    {
-                        error = e.Message;
-                    }
-                }
-
-                value = ResolveValue(value);
-
-                return (value, error);
-            };
-
-        /// <summary>
-        /// Generate an expression delegate that applies function after verifying all children.
-        /// </summary>
-        /// <param name="function">Function to apply.</param>
-        /// <param name="verify">Function to check each arg for validity.</param>
-        /// <returns>Delegate for evaluating an expression.</returns>
         public static EvaluateExpressionDelegate ApplyWithOptionsAndError(Func<IReadOnlyList<object>, Options, (object, string)> function, VerifyExpression verify = null)
             =>
             (expression, state, options) =>
@@ -806,39 +624,6 @@ namespace AdaptiveExpressions
                     try
                     {
                         (value, error) = function(args, options);
-                    }
-#pragma warning disable CA1031 // Do not catch general exception types (caputure any exception which may happen in the delegate function and return it)
-                    catch (Exception e)
-#pragma warning restore CA1031 // Do not catch general exception types
-                    {
-                        error = e.Message;
-                    }
-                }
-
-                value = ResolveValue(value);
-
-                return (value, error);
-            };
-
-        /// <summary>
-        /// Generate an expression delegate that applies function after verifying all children.
-        /// </summary>
-        /// <param name="function">Function to apply.</param>
-        /// <param name="verify">Function to check each arg for validity.</param>
-        /// <returns>Delegate for evaluating an expression.</returns>
-        public static EvaluateExpressionDelegate ApplyWithOptionsAndError(Func<IReadOnlyList<object>, IMemory, Options, (object, string)> function, VerifyExpression verify = null)
-            =>
-            (expression, state, options) =>
-            {
-                object value = null;
-                string error = null;
-                IReadOnlyList<object> args;
-                (args, error) = EvaluateChildren(expression, state, options, verify);
-                if (error == null)
-                {
-                    try
-                    {
-                        (value, error) = function(args, state, options);
                     }
 #pragma warning disable CA1031 // Do not catch general exception types (caputure any exception which may happen in the delegate function and return it)
                     catch (Exception e)
@@ -955,9 +740,7 @@ namespace AdaptiveExpressions
             }
 
             // make sure we generated a valid path
-#pragma warning disable CA1307 // Specify StringComparison
             path = path.TrimEnd('.').Replace(".[", "[");
-#pragma warning restore CA1307 // Specify StringComparison
 
             if (string.IsNullOrEmpty(path))
             {
@@ -972,19 +755,13 @@ namespace AdaptiveExpressions
         /// </summary>
         /// <param name="obj1">First object.</param>
         /// <param name="obj2">Second object.</param>
-        /// <param name="state">IMemory to delegate serialization to if needed.</param>
         /// <returns>If two objects are equal.</returns>
-        public static bool CommonEquals(object obj1, object obj2, IMemory state)
+        public static bool CommonEquals(object obj1, object obj2)
         {
             if (obj1 == null || obj2 == null)
             {
                 // null will only equals to null
                 return obj1 == null && obj2 == null;
-            }
-
-            if (obj1 is JsonValue jobj1 && obj2 is JsonValue jobj2)
-            {
-                return JsonValue.DeepEquals(jobj1, jobj2);
             }
 
             obj1 = ResolveValue(obj1);
@@ -1001,7 +778,7 @@ namespace AdaptiveExpressions
                 var isEqual = true;
                 for (var i = 0; i < l0.Count; i++)
                 {
-                    if (!CommonEquals(l0[i], l1[i], state))
+                    if (!CommonEquals(l0[i], l1[i]))
                     {
                         isEqual = false;
                         break;
@@ -1021,9 +798,9 @@ namespace AdaptiveExpressions
                     return false;
                 }
 
-                var jObj1 = state.SerializeToNode(obj1);
-                var jObj2 = state.SerializeToNode(obj2);
-                return JsonNode.DeepEquals(jObj1, jObj2);
+                var jObj1 = JObject.FromObject(obj1);
+                var jObj2 = JObject.FromObject(obj2);
+                return JToken.DeepEquals(jObj1, jObj2);
             }
 
             // Number Comparison
@@ -1107,7 +884,7 @@ namespace AdaptiveExpressions
         }
 
         /// <summary>
-        /// Lookup a property in IDictionary, JsonObject or through reflection.
+        /// Lookup a property in IDictionary, JObject or through reflection.
         /// </summary>
         /// <param name="instance">Instance with property.</param>
         /// <param name="property">Property to lookup.</param>
@@ -1119,13 +896,15 @@ namespace AdaptiveExpressions
             value = null;
             if (instance != null)
             {
+                property = property.ToLowerInvariant();
+
                 // NOTE: what about other type of TKey, TValue?
                 if (instance is IDictionary<string, object> idict)
                 {
                     if (!idict.TryGetValue(property, out value))
                     {
                         // fall back to case insensitive
-                        var prop = idict.Keys.Where(k => string.Equals(k, property, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
+                        var prop = idict.Keys.Where(k => k.ToLowerInvariant() == property).SingleOrDefault();
                         if (prop != null)
                         {
                             isPresent = idict.TryGetValue(prop, out value);
@@ -1136,18 +915,16 @@ namespace AdaptiveExpressions
                         isPresent = true;
                     }
                 }
-                else if (instance is IDictionary<string, JsonNode> jdict)
+                else if (instance is JObject jobj)
                 {
-                    // This case covers JsonObject as well as the result of IndicesAndValues' listification
-                    var result = jdict.FirstOrDefault(x => x.Key.Equals(property, StringComparison.OrdinalIgnoreCase));
-                    value = result.Value;
-                    isPresent = result.Key != null;
+                    value = jobj.GetValue(property, StringComparison.OrdinalIgnoreCase);
+                    isPresent = value != null;
                 }
                 else
                 {
                     // Use reflection
                     var type = instance.GetType();
-                    var prop = type.GetProperties().Where(p => string.Equals(p.Name, property, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
+                    var prop = type.GetProperties().Where(p => p.Name.ToLowerInvariant() == property).SingleOrDefault();
                     if (prop != null)
                     {
                         value = prop.GetValue(instance);
@@ -1188,71 +965,39 @@ namespace AdaptiveExpressions
         }
 
         /// <summary>
-        /// Convert constant JsonValue to base type value.
+        /// Convert constant JValue to base type value.
         /// </summary>
         /// <param name="obj">Input object.</param>
-        /// <returns>Corresponding base type if input is a JsonValue.</returns>
+        /// <returns>Corresponding base type if input is a JValue.</returns>
         internal static object ResolveValue(object obj)
         {
-            if (obj is JsonValue jval)
+            object value;
+            if (!(obj is JValue jval))
             {
-                switch (jval.GetValueKind())
+                value = obj;
+            }
+            else
+            {
+                value = jval.Value;
+                if (jval.Type == JTokenType.Integer)
                 {
-                    case JsonValueKind.String:
-                        return jval.GetString();
-                    case JsonValueKind.Number:
-                        // If this is a JsonElement we can get back int vs floating point from it, so try that first
-                        if (jval.TryGetValue<JsonElement>(out var jelem))
-                        {
-                            return ResolveValue(jelem);
-                        }
-
-                        return jval.GetNumber();
-                    case JsonValueKind.Null:
-                        return null;
-                    case JsonValueKind.True:
-                        return true;
-                    case JsonValueKind.False:
-                        return false;
-                    default:
-                        return jval.GetValue<object>();
+                    value = jval.ToObject<long>();
+                }
+                else if (jval.Type == JTokenType.String)
+                {
+                    value = jval.ToObject<string>();
+                }
+                else if (jval.Type == JTokenType.Boolean)
+                {
+                    value = jval.ToObject<bool>();
+                }
+                else if (jval.Type == JTokenType.Float)
+                {
+                    value = jval.ToObject<double>();
                 }
             }
-            else if (obj is JsonElement jelem)
-            {
-                return ResolveValue(jelem);
-            }
 
-            return obj;
-        }
-
-        internal static object ResolveValue(JsonElement jelem)
-        {
-            switch (jelem.ValueKind)
-            {
-                case JsonValueKind.String:
-                    return jelem.GetString();
-                case JsonValueKind.Number:
-                    if (jelem.TryGetInt32(out var int32))
-                    {
-                        return int32;
-                    }
-                    else if (jelem.TryGetInt64(out var int64))
-                    {
-                        return int64;
-                    }
-
-                    return jelem.GetDecimal();
-                case JsonValueKind.Null:
-                    return null;
-                case JsonValueKind.True:
-                    return true;
-                case JsonValueKind.False:
-                    return false;
-                default:
-                    Environment.FailFast("Unhandled JsonValueKind");
-                    return null;
-            }
+            return value;
         }
 
         internal static (object value, string error) WrapGetValue(IMemory memory, string property, Options options)
@@ -1286,24 +1031,20 @@ namespace AdaptiveExpressions
         }
 
         /// <summary>
-        /// Return new object list replace JsonArray.ToArray&lt;object&gt;().
+        /// Return new object list replace jarray.ToArray&lt;object&gt;().
         /// </summary>
         /// <param name="instance">List to resolve.</param>
         /// <returns>Resolved list.</returns>
         internal static IList ResolveListValue(object instance)
         {
             IList result = null;
-            if (instance is JsonArray ja)
+            if (instance is JArray ja)
             {
-                result = ja.Select(x => ResolveValue(x)).ToList();
+                result = (IList)ja.ToObject(typeof(List<object>));
             }
             else if (TryParseList(instance, out var list))
             {
-                result = new List<object>();
-                foreach (var x in list)
-                {
-                    result.Add(ResolveValue(x));
-                }
+                result = list;
             }
 
             return result;
@@ -1344,7 +1085,7 @@ namespace AdaptiveExpressions
             }
             else if (error == null)
             {
-                var list = ConvertToList(instance, state);
+                var list = ConvertToList(instance);
                 if (list == null)
                 {
                     error = $"{expression.Children[0]} is not a collection or structure object to run Foreach";
@@ -1378,9 +1119,13 @@ namespace AdaptiveExpressions
             for (var idx = 0; idx < list.Count; idx++)
             {
                 var currentItem = AccessIndex(list, idx).value;
+                var local = new Dictionary<string, object>
+                {
+                    { iteratorName, currentItem },
+                };
 
                 // the local iterator is pushed as one memory layer in the memory stack
-                stackedMemory.PushLocalIterator(iteratorName, currentItem);
+                stackedMemory.Push(new SimpleObjectMemory(local));
                 (var r, var e) = expression.Children[2].TryEvaluate(stackedMemory, options);
                 stackedMemory.Pop();
 
@@ -1392,33 +1137,34 @@ namespace AdaptiveExpressions
             }
         }
 
-        internal static IList ConvertToList(object instance, IMemory state)
+        internal static IList ConvertToList(object instance)
         {
             IList list = null;
             if (TryParseList(instance, out IList ilist))
             {
                 list = ilist;
             }
-            else if (instance is JsonObject jobj)
+            else if (instance is JObject jobj)
             {
                 list = Object2KVPairList(jobj);
             }
-            else if (state.SerializeToNode(instance) is JsonObject jsonObject)
+            else if (ConvertToJToken(instance) is JObject jobject)
             {
-                list = Object2KVPairList(jsonObject);
+                list = Object2KVPairList(jobject);
             }
 
             return list;
         }
 
-        internal static List<object> Object2KVPairList(JsonObject jobj)
+        internal static List<object> Object2KVPairList(JObject jobj)
         {
-            return jobj.ToList().ConvertAll<object>(
-                x => new Dictionary<string, JsonNode>
-                    {
-                        { "key", x.Key },
-                        { "value", x.Value }
-                    });
+            var tempList = new List<object>();
+            foreach (var item in jobj)
+            {
+                tempList.Add(new { key = item.Key, value = item.Value });
+            }
+
+            return tempList;
         }
 
         internal static void ValidateLambdaExpression(Expression expression)
@@ -1608,9 +1354,9 @@ namespace AdaptiveExpressions
             {
                 parsed = timex;
             }
-            else if (timexExpr is JsonObject jTimex)
+            else if (timexExpr is JObject jTimex)
             {
-                parsed = jTimex.Deserialize(AdaptiveExpressionsSerializerContext.Default.TimexProperty);
+                parsed = jTimex.ToObject<TimexProperty>();
             }
             else if (timexExpr is string ts)
             {
@@ -1635,19 +1381,13 @@ namespace AdaptiveExpressions
             return Encoding.UTF8.GetBytes(strToConvert);
         }
 
-        //internal static JsonNode ConvertToJsonNode(object value)
-        //{
-        //    /* TODO: A couple options: 
-        //     * 1. Don't support this (require TryEvaluate to return a small set of known types), 
-        //     * 2. Make ConvertToJsonNode and similar calls a method on IMemory so callers have to do the conversion
-        //    */
-        //    return value == null ? null : JsonSerializer.SerializeToNode(value);
-        //}
+        internal static JToken ConvertToJToken(object value)
+        {
+            return value == null ? JValue.CreateNull() : JToken.FromObject(value);
+        }
 
         // collection functions
 
-        [SuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AOT aware callers will not need us to call JsonSerializer")]
-        [SuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AOT aware callers will not need us to call JsonSerializer")]
         internal static EvaluateExpressionDelegate SortBy(bool isDescending)
            => (expression, state, options) =>
            {
@@ -1658,27 +1398,22 @@ namespace AdaptiveExpressions
 
                if (error == null)
                {
-                   if (TryAsList(arr, out var list))
+                   if (TryParseList(arr, out var list))
                    {
                        if (expression.Children.Length == 1)
                        {
                            if (isDescending)
                            {
-                               result = list.OfType<object>().OrderByDescending(item => item, JsonObjectComparer.Instance).ToList();
+                               result = list.OfType<object>().OrderByDescending(item => item).ToList();
                            }
                            else
                            {
-                               result = list.OfType<object>().OrderBy(item => item, JsonObjectComparer.Instance).ToList();
+                               result = list.OfType<object>().OrderBy(item => item).ToList();
                            }
                        }
                        else
                        {
-                           JsonArray jsonArray = list as JsonArray;
-                           if (jsonArray == null)
-                           {
-                               jsonArray = JsonSerializer.SerializeToNode(list).AsArray();
-                           }
-
+                           var jarray = JArray.FromObject(list.OfType<object>().ToList());
                            var propertyNameExpression = expression.Children[1];
                            string propertyName;
                            (propertyName, error) = propertyNameExpression.TryEvaluate<string>(state, options);
@@ -1687,11 +1422,11 @@ namespace AdaptiveExpressions
                                propertyName = propertyName ?? string.Empty;
                                if (isDescending)
                                {
-                                   result = jsonArray.OrderByDescending(obj => obj[propertyName], JsonObjectComparer.Instance).ToList();
+                                   result = jarray.OrderByDescending(obj => obj[propertyName]).ToList();
                                }
                                else
                                {
-                                   result = jsonArray.OrderBy(obj => obj[propertyName], JsonObjectComparer.Instance).ToList();
+                                   result = jarray.OrderBy(obj => obj[propertyName]).ToList();
                                }
                            }
                        }
@@ -1705,56 +1440,29 @@ namespace AdaptiveExpressions
                return (result, error);
            };
 
-        internal static void Merge(this JsonObject target, JsonObject source)
-        {
-            foreach (var kvp in source)
-            {
-                var newValue = kvp.Value;
-                if (target.TryGetPropertyValue(kvp.Key, out var value))
-                {
-                    if (value.GetValueKind() == JsonValueKind.Object && newValue.GetValueKind() == JsonValueKind.Object)
-                    {
-                        newValue.AsObject().Merge(value.AsObject());
-                    }
-                    else if (value.GetValueKind() == JsonValueKind.Array && newValue.GetValueKind() == JsonValueKind.Array)
-                    {
-                        // Merge strategy = replace, so ignore the existing array.
-                        //newValue.AsArray().Merge(value.AsArray());
-                    }
-                }
-
-                target[kvp.Key] = newValue.DeepClone();
-            }
-        }
-
-        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AOT caller will have supplied a non-null JsonTypeInfo")]
-        [UnconditionalSuppressMessage("AOT", "IL3050:Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.", Justification = "AOT caller will have supplied a non-null JsonTypeInfo")]
-        internal static void SerializeValueToWriter<T>(Utf8JsonWriter writer, T value, JsonTypeInfo valueJsonTypeInfo, JsonSerializerOptions options)
-        {
-            if (valueJsonTypeInfo != null)
-            {
-                JsonSerializer.Serialize(writer, value, valueJsonTypeInfo);
-            }
-            else
-            {
-                JsonValue.Create(value).WriteTo(writer, options);
-            }
-        }
-
         private static (object, string) ParseISOTimestamp(string timeStamp, Func<DateTime, (object, string)> transform = null)
         {
             object result = null;
             string error = null;
 
-            try
+            if (DateTime.TryParse(
+                    s: timeStamp,
+                    provider: CultureInfo.InvariantCulture,
+                    styles: DateTimeStyles.RoundtripKind,
+                    result: out var parsed))
             {
-                var parsed = JsonSerializer.Deserialize($"\"{timeStamp}\"", AdaptiveExpressionsSerializerContext.Default.DateTime);
-
-                (result, error) = transform != null ? transform(parsed) : (parsed, null);
+                if (parsed.ToString(DefaultDateTimeFormat, CultureInfo.InvariantCulture).Equals(timeStamp, StringComparison.OrdinalIgnoreCase))
+                {
+                    (result, error) = transform != null ? transform(parsed) : (parsed, null);
+                }
+                else
+                {
+                    error = $"{timeStamp} is not standard ISO format.";
+                }
             }
-            catch (JsonException)
+            else
             {
-                error = $"{timeStamp} is not standard ISO format.";
+                error = $"Could not parse {timeStamp}";
             }
 
             return (result, error);
@@ -1764,7 +1472,6 @@ namespace AdaptiveExpressions
         {
             string result;
             var names = returnType.ToString();
-#pragma warning disable CA1307 // Specify StringComparison
             if (!names.Contains(","))
             {
                 result = $"{childExpr} is not a {names} expression in {expr}.";
@@ -1773,7 +1480,6 @@ namespace AdaptiveExpressions
             {
                 result = $"{childExpr} in {expr} is not any of [{names}].";
             }
-#pragma warning restore CA1307 // Specify StringComparison
 
             return result;
         }
@@ -1784,72 +1490,17 @@ namespace AdaptiveExpressions
             {
                 return dictionary.Count;
             }
-            else if (obj is JsonObject jobj)
+            else if (obj is JObject jobj)
             {
-                return jobj.Count;
+                return jobj.Properties().Count();
             }
-            else if (!(obj is JsonValue) && obj.GetType().IsValueType == false && obj.GetType().FullName != "System.String")
+            else if (!(obj is JValue) && obj.GetType().IsValueType == false && obj.GetType().FullName != "System.String")
             {
                 // exclude constant type.
                 return obj.GetType().GetProperties().Length;
             }
 
             return -1;
-        }
-
-        private class JsonObjectComparer : IComparer<JsonNode>, IComparer<object>
-        {
-            public static readonly JsonObjectComparer Instance = new JsonObjectComparer();
-
-            public int Compare(JsonNode x, JsonNode y)
-            {
-                var xkind = x.GetValueKind();
-                var ykind = y.GetValueKind();
-                if (xkind == ykind)
-                {
-                    if (xkind == JsonValueKind.Number)
-                    {
-                        return x.AsValue().GetValue<decimal>().CompareTo(y.AsValue().GetValue<decimal>());
-                    }
-                    else if (xkind == JsonValueKind.String)
-                    {
-                        return string.CompareOrdinal(x.AsValue().GetString(), y.AsValue().GetString());
-                    }
-                }
-
-                return xkind.CompareTo(ykind);
-            }
-
-            public int Compare(object x, object y)
-            {
-                if (x is JsonNode xj && y is JsonNode yj)
-                {
-                    return Compare(xj, yj);
-                }
-                else if (x is string xs && y is string ys)
-                {
-                    return string.CompareOrdinal(xs, ys);
-                }
-                else if (x is IComparable xc && y is IComparable yc)
-                {
-                    return xc.CompareTo(yc);
-                }
-
-                if (x == null && y == null)
-                {
-                    return 0;
-                }
-                else if (x == null && y != null)
-                {
-                    return -1;
-                }
-                else if (x != null && y == null)
-                {
-                    return 1;
-                }
-
-                return x.GetHashCode().CompareTo(y.GetHashCode());
-            }
         }
     }
 }

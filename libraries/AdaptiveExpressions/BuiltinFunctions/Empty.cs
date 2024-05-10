@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using AdaptiveExpressions.Memory;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -27,7 +26,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         {
         }
 
-        private static bool Function(IReadOnlyList<object> args, IMemory state)
+        private static bool Function(IReadOnlyList<object> args)
         {
             return IsEmpty(args[0]);
         }

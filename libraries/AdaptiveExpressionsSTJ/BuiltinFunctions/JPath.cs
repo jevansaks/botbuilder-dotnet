@@ -3,7 +3,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -30,12 +31,12 @@ namespace AdaptiveExpressions.BuiltinFunctions
             object result = null;
             string error = null;
             object value = null;
-            JObject jsonObj = null;
+            JsonNode jsonObj = null;
             if (jsonEntity is string jsonStr)
             {
                 try
                 {
-                    jsonObj = JObject.Parse(jsonStr);
+                    jsonObj = JsonObject.Parse(jsonStr);
                 }
 #pragma warning disable CA1031 // Do not catch general exception types (we should probably do something about this but ignoring it for now)
                 catch
@@ -44,7 +45,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                     error = $"{jsonStr} is not a valid JSON string";
                 }
             }
-            else if (jsonEntity is JObject parsed)
+            else if (jsonEntity is JsonObject parsed)
             {
                 jsonObj = parsed;
             }
@@ -57,7 +58,14 @@ namespace AdaptiveExpressions.BuiltinFunctions
             {
                 try
                 {
-                    value = jsonObj.SelectTokens(jpath);
+                    string jpathFixed = jpath;
+                    if (!jpathFixed.StartsWith("$", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        jpathFixed = "$." + jpathFixed;
+                    }
+
+                    var jsonPath = global::Json.Path.JsonPath.Parse(jpathFixed);
+                    value = jsonPath.Evaluate(jsonObj).Matches.Select(x => x.Value);
                 }
 #pragma warning disable CA1031 // Do not catch general exception types (we should probably do something about this but ignoring for now)
                 catch
@@ -69,7 +77,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
             if (error == null)
             {
-                if (value is IEnumerable<JToken> products)
+                if (value is IEnumerable<JsonNode> products)
                 {
                     if (products.Count() == 1)
                     {

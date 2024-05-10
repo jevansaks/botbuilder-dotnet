@@ -2,12 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
-using AdaptiveExpressions.Converters;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -22,8 +17,6 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
         /// </summary>
-        [RequiresDynamicCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
-        [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
         public EnumExpression()
         {
         }
@@ -32,8 +25,6 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
         /// </summary>
         /// <param name="value">value of T.</param>
-        [RequiresDynamicCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
-        [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
         public EnumExpression(T value)
             : base(value)
         {
@@ -43,8 +34,6 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
         /// </summary>
         /// <param name="expression">expression to resolve to an enum.</param>
-        [RequiresDynamicCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
-        [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
         public EnumExpression(string expression)
             : base(expression)
         {
@@ -54,8 +43,6 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
         /// </summary>
         /// <param name="expression">expression to resolve to an enum.</param>
-        [RequiresDynamicCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
-        [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
         public EnumExpression(Expression expression)
             : base(expression)
         {
@@ -65,8 +52,6 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
         /// </summary>
         /// <param name="lambda">function (data) which evaluates to enum.</param>
-        [RequiresDynamicCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
-        [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
         public EnumExpression(Func<object, object> lambda)
             : this(Expression.Lambda(lambda))
         {
@@ -75,50 +60,9 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
         /// </summary>
-        /// <param name="expressionOrValue">JsonNode value to resolve to an enum.</param>
-        [RequiresDynamicCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
-        [RequiresUnreferencedCode("For AOT compatibility, use overloads that take a JsonTypeInfo")]
-        public EnumExpression(JsonNode expressionOrValue)
+        /// <param name="expressionOrValue">jtoken value to resolve to an enum.</param>
+        public EnumExpression(JToken expressionOrValue)
             : base(expressionOrValue)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
-        /// </summary>
-        /// <param name="typeInfo">typeInfo.</param>
-        public EnumExpression(JsonTypeInfo typeInfo)
-            : base(typeInfo)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
-        /// </summary>
-        /// <param name="value">value of T.</param>
-        /// <param name="typeInfo">typeInfo.</param>
-        public EnumExpression(T value, JsonTypeInfo typeInfo)
-            : base(value, typeInfo)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
-        /// </summary>
-        /// <param name="value">value of T.</param>
-        /// <param name="typeInfo">typeInfo.</param>
-        public EnumExpression(JsonNode value, JsonTypeInfo typeInfo)
-            : base(value, typeInfo)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="EnumExpression{T}"/> class.
-        /// </summary>
-        /// <param name="expression">expression to resolve to an enum.</param>
-        /// <param name="typeInfo">typeInfo.</param>
-        public EnumExpression(string expression, JsonTypeInfo typeInfo)
-            : base(expression, typeInfo)
         {
         }
 
@@ -127,33 +71,25 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="value">The value to convert.</param>
 #pragma warning disable CA2225 // Operator overloads have named alternates
-        [RequiresUnreferencedCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
-        [RequiresDynamicCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
         public static implicit operator EnumExpression<T>(T value) => new EnumExpression<T>(value);
 
         /// <summary>
         /// Converts a string value to an EnumExpression instance.
         /// </summary>
         /// <param name="expressionOrValue">The string value.</param>
-        [RequiresUnreferencedCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
-        [RequiresDynamicCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
         public static implicit operator EnumExpression<T>(string expressionOrValue) => new EnumExpression<T>(expressionOrValue);
 
         /// <summary>
         /// Converts an Expression instance to an EnumExpression instance.
         /// </summary>
         /// <param name="expression">The Expression instance.</param>
-        [RequiresUnreferencedCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
-        [RequiresDynamicCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
         public static implicit operator EnumExpression<T>(Expression expression) => new EnumExpression<T>(expression);
 
         /// <summary>
         /// Converts a JSON Token to an EnumExpression instance.
         /// </summary>
         /// <param name="value">The JSON Token to convert.</param>
-        [RequiresUnreferencedCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
-        [RequiresDynamicCode("Implicit operator can't infer JsonTypeInfo for T, use explicit constructor")]
-        public static implicit operator EnumExpression<T>(JsonNode value) => new EnumExpression<T>(value);
+        public static implicit operator EnumExpression<T>(JToken value) => new EnumExpression<T>(value);
 #pragma warning restore CA2225 // Operator overloads have named alternates
 
         /// <summary>

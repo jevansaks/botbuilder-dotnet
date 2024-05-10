@@ -2,8 +2,7 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Nodes;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -23,9 +22,9 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
         private static EvaluateExpressionDelegate Evaluator()
         {
-            return FunctionUtils.ApplyWithError((args, state) =>
+            return FunctionUtils.ApplyWithError(args =>
             {
-                var newJobj = (IDictionary<string, JsonNode>)args[0];
+                var newJobj = (IDictionary<string, JToken>)args[0];
                 var prop = args[1].ToString();
                 string error = null;
                 if (newJobj.ContainsKey(prop))
@@ -34,7 +33,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                 }
                 else
                 {
-                    newJobj[prop] = state.SerializeToNode(args[2]);
+                    newJobj[prop] = FunctionUtils.ConvertToJToken(args[2]);
                 }
 
                 return (newJobj, error);

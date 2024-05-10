@@ -2,10 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
-
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using AdaptiveExpressions.Converters;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Properties
 {
@@ -20,7 +19,6 @@ namespace AdaptiveExpressions.Properties
         /// Initializes a new instance of the <see cref="NumberExpression"/> class.
         /// </summary>
         public NumberExpression()
-            : base(AdaptiveExpressionsSerializerContext.Default.Double)
         {
         }
 
@@ -29,7 +27,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="value">value to use.</param>
         public NumberExpression(double value) 
-            : base(value, AdaptiveExpressionsSerializerContext.Default.Double)
+            : base(value)
         {
         }
 
@@ -38,7 +36,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">string to interpret as expression or number.</param>
         public NumberExpression(string expression)
-            : base(expression, AdaptiveExpressionsSerializerContext.Default.Double)
+            : base(expression)
         {
         }
 
@@ -47,7 +45,7 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="expression">expression.</param>
         public NumberExpression(Expression expression)
-            : base(expression, AdaptiveExpressionsSerializerContext.Default.Double)
+            : base(expression)
         {
         }
 
@@ -63,9 +61,9 @@ namespace AdaptiveExpressions.Properties
         /// <summary>
         /// Initializes a new instance of the <see cref="NumberExpression"/> class.
         /// </summary>
-        /// <param name="expressionOrValue">JsonNode to interpret as expression or number.</param>
-        public NumberExpression(JsonNode expressionOrValue)
-            : base(expressionOrValue, AdaptiveExpressionsSerializerContext.Default.Double)
+        /// <param name="expressionOrValue">jtoken to interpret as expression or number.</param>
+        public NumberExpression(JToken expressionOrValue)
+            : base(expressionOrValue)
         {
         }
 
@@ -92,7 +90,7 @@ namespace AdaptiveExpressions.Properties
         /// Converts a JSON Token to an NumberExpression instance.
         /// </summary>
         /// <param name="expressionOrValue">The JSON Token to convert.</param>
-        public static implicit operator NumberExpression(JsonNode expressionOrValue) => new NumberExpression(expressionOrValue);
+        public static implicit operator NumberExpression(JToken expressionOrValue) => new NumberExpression(expressionOrValue);
 #pragma warning restore CA2225 // Operator overloads have named alternates
     }
 }

@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System.Linq;
-using AdaptiveExpressions.Memory;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -24,7 +23,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             FunctionUtils.ValidateOrder(expression, new[] { ReturnType.Number }, ReturnType.Array, ReturnType.Number);
         }
 
-        private static (object, string) EvalSubArray(Expression expression, IMemory state, Options options)
+        private static (object, string) EvalSubArray(Expression expression, object state, Options options)
         {
             object result = null;
             string error;

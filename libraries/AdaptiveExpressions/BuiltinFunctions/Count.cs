@@ -28,9 +28,9 @@ namespace AdaptiveExpressions.BuiltinFunctions
                             {
                                 count = string0.Length;
                             }
-                            else if (FunctionUtils.TryAsList(args[0], out var list))
+                            else if (args[0] is IList list)
                             {
-                                count = FunctionUtils.GetListCount(list);
+                                count = list.Count;
                             }
 
                             return count;

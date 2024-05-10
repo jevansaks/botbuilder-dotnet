@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using AdaptiveExpressions.Memory;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -20,12 +19,12 @@ namespace AdaptiveExpressions.BuiltinFunctions
         /// <param name="function">The comparison function, it takes a list of objects and returns a boolean.</param>
         /// <param name="validator">Validator of input arguments.</param>
         /// <param name="verify">Optional function to verify each child's result.</param>
-        public ComparisonEvaluator(string type, Func<IReadOnlyList<object>, IMemory, bool> function, ValidateExpressionDelegate validator, FunctionUtils.VerifyExpression verify = null)
+        public ComparisonEvaluator(string type, Func<IReadOnlyList<object>, bool> function, ValidateExpressionDelegate validator, FunctionUtils.VerifyExpression verify = null)
             : base(type, Evaluator(function, verify), ReturnType.Boolean, validator)
         {
         }
 
-        private static EvaluateExpressionDelegate Evaluator(Func<IReadOnlyList<object>, IMemory, bool> function, FunctionUtils.VerifyExpression verify)
+        private static EvaluateExpressionDelegate Evaluator(Func<IReadOnlyList<object>, bool> function, FunctionUtils.VerifyExpression verify)
         {
             return (expression, state, options) =>
             {
@@ -37,7 +36,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                 {
                     try
                     {
-                        result = function(args, state);
+                        result = function(args);
                     }
 #pragma warning disable CA1031 // Do not catch general exception types (we are capturing the exception and returning it)
                     catch (Exception e)

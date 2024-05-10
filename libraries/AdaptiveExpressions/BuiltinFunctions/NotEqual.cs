@@ -5,7 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Nodes;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -20,7 +20,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         public NotEqual()
             : base(
                   ExpressionType.NotEqual,
-                  (args, state) => !FunctionUtils.CommonEquals(args[0], args[1], state),
+                  (args) => !FunctionUtils.CommonEquals(args[0], args[1]),
                   FunctionUtils.ValidateBinary)
         {
         }

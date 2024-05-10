@@ -63,9 +63,7 @@ namespace AdaptiveExpressions
             }
             else if (Value is string value)
             {
-#pragma warning disable CA1307 // Specify StringComparison
                 var result = value.Replace(@"\", @"\\");
-#pragma warning restore CA1307 // Specify StringComparison
 
                 result = _singleQuotRegex.Replace(result, new MatchEvaluator(m =>
                 {

@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -186,8 +185,6 @@ namespace AdaptiveExpressions.TriggerTrees
         /// </summary>
         /// <param name="state">State to evaluate against.</param>
         /// <returns>Enumeration of possible matches.</returns>
-        [RequiresUnreferencedCode("Matches uses reflection")]
-        [RequiresDynamicCode("Matches uses reflection")]
         public IEnumerable<Trigger> Matches(object state) => Root.Matches(state);
 
         /// <summary>
@@ -199,9 +196,7 @@ namespace AdaptiveExpressions.TriggerTrees
         private void TreeToString(StringBuilder builder, Node node, int indent)
         {
             node.ToString(builder, indent);
-#pragma warning disable CA1305 // Specify IFormatProvider
             builder.Append($" [{node.Triggers.Count}]");
-#pragma warning restore CA1305 // Specify IFormatProvider
             builder.AppendLine();
             foreach (var child in node.Specializations)
             {
@@ -209,9 +204,7 @@ namespace AdaptiveExpressions.TriggerTrees
             }
         }
 
-#pragma warning disable CA1307 // Specify StringComparison
         private string NameNode(Node node) => '"' + node.ToString().Replace("\"", "\\\"") + '"';
-#pragma warning restore CA1307 // Specify StringComparison
 
         private void GenerateGraph(StreamWriter output, Node node, int indent, HashSet<Node> visited)
         {

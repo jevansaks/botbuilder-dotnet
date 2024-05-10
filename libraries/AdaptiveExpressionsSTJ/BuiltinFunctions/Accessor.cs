@@ -42,7 +42,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                     return (null, err);
                 }
 
-                return FunctionUtils.WrapGetValue(MemoryFactory.Create(newScope), path, options);
+                return FunctionUtils.WrapGetValue(state.CreateMemoryFrom(newScope), path, options);
             }
         }
 

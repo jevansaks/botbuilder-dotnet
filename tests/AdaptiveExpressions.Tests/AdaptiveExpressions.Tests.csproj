@@ -2,25 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(BuildTarget)' == 'netcoreapp31'">netcoreapp3.1</TargetFramework>
-    <TargetFramework Condition="'$(BuildTarget)' == 'net8'">net8.0</TargetFramework>
-    <TargetFramework Condition="'$(BuildTarget)' == 'net7'">net7.0</TargetFramework>
-    <TargetFrameworks Condition="'$(BuildTarget)' == ''">netcoreapp3.1;net7.0;net8.0</TargetFrameworks>
+    <TargetFramework Condition="'$(BuildTarget)' == 'net6'">net6.0</TargetFramework>
+    <TargetFrameworks Condition="'$(BuildTarget)' == ''">netcoreapp3.1;net6.0</TargetFrameworks>
 
     <IsPackable>false</IsPackable>
 
     <Configurations>Debug;Release</Configurations>
-
-    <PolySharpIncludeRuntimeSupportedAttributes>true</PolySharpIncludeRuntimeSupportedAttributes>
-    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
-
-    <!-- This error about is coming from generated code, suppressing here. (JsonSerializerOptions.IgnoreNullValues is obsolete) -->
-    <NoWarn>$(NoWarn);SYSLIB0020</NoWarn>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
-    <IsAotCompatible>true</IsAotCompatible>
-    <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
-    <DefineConstants>$(DefineConstants);AOT</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,10 +15,6 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.1.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="PolySharp" Version="1.14.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

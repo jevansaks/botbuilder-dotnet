@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System.Diagnostics.CodeAnalysis;
+using AdaptiveExpressions.Memory;
+
 namespace AdaptiveExpressions.Properties
 {
     /// <summary>
@@ -17,7 +20,7 @@ namespace AdaptiveExpressions.Properties
         /// <remarks>Helper methods which allows you to work with the expression property values as purely objects.</remarks>
         /// <param name="data">data to bind to.</param>
         /// <returns>value as object.</returns>
-        object GetObject(object data);
+        object GetObject(IMemory data);
 
         /// <summary>
         /// Try Get value as object.
@@ -25,7 +28,7 @@ namespace AdaptiveExpressions.Properties
         /// <remarks>Helper methods which allows you to work with the expression property values as purely objects.</remarks>
         /// <param name="data">data.</param>
         /// <returns>Value and error.</returns>
-        (object Value, string Error) TryGetObject(object data);
+        (object Value, string Error) TryGetObject(IMemory data);
 
         /// <summary>
         /// Set value as object.

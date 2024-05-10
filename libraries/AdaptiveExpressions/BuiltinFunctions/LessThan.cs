@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using AdaptiveExpressions.Memory;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -25,7 +24,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         {
         }
 
-        private static bool Function(IReadOnlyList<object> args, IMemory state)
+        private static bool Function(IReadOnlyList<object> args)
         {
             if (args[0].IsNumber() && args[1].IsNumber())
             {

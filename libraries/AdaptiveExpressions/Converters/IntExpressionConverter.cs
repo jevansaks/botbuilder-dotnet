@@ -2,12 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using AdaptiveExpressions.Properties;
-using Json.More;
-using Json.Schema;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.Converters
 {
@@ -24,39 +21,47 @@ namespace AdaptiveExpressions.Converters
         }
 
         /// <summary>
-        /// Reads and converts the JSON type.
+        /// Gets a value indicating whether this Converter can read JSON.
         /// </summary>
-        /// <param name="reader">The reader.</param>
-        /// <param name="typeToConvert">The type to convert.</param>
-        /// <param name="options">An object that specifies serialization options to use.</param>
-        /// <returns>The converted value.</returns>
-        public override IntExpression Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        /// <value>true if this Converter can read JSON; otherwise, false.</value>
+        public override bool CanRead => true;
+
+        /// <summary>
+        /// Reads the JSON representation of the object.
+        /// </summary>
+        /// <param name="reader">The Newtonsoft.Json.JsonReader to read from.</param>
+        /// <param name="objectType">Type of the object.</param>
+        /// <param name="existingValue">The existing value of object being read.</param>
+        /// <param name="hasExistingValue">A boolean value indicating whether there is an existing value of object to be read.</param>
+        /// <param name="serializer">The calling serializer.</param>
+        /// <returns>An IntExpression instance.</returns>
+        public override IntExpression ReadJson(JsonReader reader, Type objectType, IntExpression existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            if (reader.TokenType == JsonTokenType.String)
+            if (reader.ValueType == typeof(string))
             {
-                return new IntExpression(reader.GetString());
+                return new IntExpression((string)reader.Value);
             }
             else
             {
-                return new IntExpression(JsonValue.Parse(ref reader));
+                return new IntExpression(JToken.Load(reader));
             }
         }
 
         /// <summary>
-        /// Writes a specified value as JSON.
+        /// Writes the JSON representation of the object.
         /// </summary>
-        /// <param name="writer">The writer.</param>
+        /// <param name="writer">The Newtonsoft.Json.JsonWriter to write to.</param>
         /// <param name="value">The value.</param>
-        /// <param name="options">An object that specifies serialization options to use.</param>
-        public override void Write(Utf8JsonWriter writer, IntExpression value, JsonSerializerOptions options)
+        /// <param name="serializer">The calling serializer.</param>
+        public override void WriteJson(JsonWriter writer, IntExpression value, JsonSerializer serializer)
         {
             if (value.ExpressionText != null)
             {
-                writer.WriteStringValue(value.ToString());
+                serializer.Serialize(writer, value.ToString());
             }
             else
             {
-                writer.WriteNumberValue(value.Value);
+                serializer.Serialize(writer, value.Value);
             }
         }
     }

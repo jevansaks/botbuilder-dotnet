@@ -3,9 +3,8 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Nodes;
 using AdaptiveExpressions.Memory;
+using Newtonsoft.Json.Linq;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -31,7 +30,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             (instance, error) = expression.Children[0].TryEvaluate(state, options);
             if (error == null)
             {
-                var list = FunctionUtils.ConvertToList(instance, state);
+                var list = FunctionUtils.ConvertToList(instance);
                 if (list == null)
                 {
                     error = $"{expression.Children[0]} is not a collection or structure object to run Where";
@@ -53,12 +52,12 @@ namespace AdaptiveExpressions.BuiltinFunctions
                     if (!FunctionUtils.TryParseList(instance, out IList _))
                     {
                         // re-construct object
-                        var jobjResult = new JsonObject();
+                        var jobjResult = new JObject();
                         foreach (var item in (List<object>)result)
                         {
                             FunctionUtils.TryAccessProperty(item, "key", out var keyVal);
                             FunctionUtils.TryAccessProperty(item, "value", out var val);
-                            jobjResult.Add(keyVal as string, state.SerializeToNode(val));
+                            jobjResult.Add(keyVal as string, FunctionUtils.ConvertToJToken(val));
                         }
 
                         result = jobjResult;

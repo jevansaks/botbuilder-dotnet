@@ -47,7 +47,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                     (property, error) = children[1].TryEvaluate(state, options);
                     if (error == null)
                     {
-                        (value, error) = FunctionUtils.WrapGetValue(state.CreateMemoryFrom(firstItem), (string)property, options);
+                        (value, error) = FunctionUtils.WrapGetValue(MemoryFactory.Create(firstItem), (string)property, options);
                     }
                 }
             }

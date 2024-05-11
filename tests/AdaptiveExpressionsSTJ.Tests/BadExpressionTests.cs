@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 using Xunit;
 
 namespace AdaptiveExpressions.Tests
@@ -500,7 +500,7 @@ namespace AdaptiveExpressions.Tests
                 hello = "hello",
                 world = "world",
                 istrue = true,
-                emptyJObject = new JObject(),
+                emptyJObject = new JsonObject(),
                 bag = new
                 {
                     three = 3.0,

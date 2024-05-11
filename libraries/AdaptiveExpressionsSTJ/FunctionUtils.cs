@@ -955,9 +955,7 @@ namespace AdaptiveExpressions
             }
 
             // make sure we generated a valid path
-#pragma warning disable CA1307 // Specify StringComparison
-            path = path.TrimEnd('.').Replace(".[", "[");
-#pragma warning restore CA1307 // Specify StringComparison
+            path = path.TrimEnd('.').Replace(".[", "[", StringComparison.Ordinal);
 
             if (string.IsNullOrEmpty(path))
             {
@@ -1764,8 +1762,7 @@ namespace AdaptiveExpressions
         {
             string result;
             var names = returnType.ToString();
-#pragma warning disable CA1307 // Specify StringComparison
-            if (!names.Contains(","))
+            if (!names.Contains(",", StringComparison.Ordinal))
             {
                 result = $"{childExpr} is not a {names} expression in {expr}.";
             }
@@ -1773,7 +1770,6 @@ namespace AdaptiveExpressions
             {
                 result = $"{childExpr} in {expr} is not any of [{names}].";
             }
-#pragma warning restore CA1307 // Specify StringComparison
 
             return result;
         }

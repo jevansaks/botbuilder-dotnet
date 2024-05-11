@@ -209,9 +209,7 @@ namespace AdaptiveExpressions.TriggerTrees
             }
         }
 
-#pragma warning disable CA1307 // Specify StringComparison
-        private string NameNode(Node node) => '"' + node.ToString().Replace("\"", "\\\"") + '"';
-#pragma warning restore CA1307 // Specify StringComparison
+        private string NameNode(Node node) => '"' + node.ToString().Replace("\"", "\\\"", System.StringComparison.Ordinal) + '"';
 
         private void GenerateGraph(StreamWriter output, Node node, int indent, HashSet<Node> visited)
         {

@@ -188,9 +188,7 @@ namespace AdaptiveExpressions.Properties
                 }
 
                 // keep the string as quoted expression, which will be literal unless string interpolation is used.
-#pragma warning disable CA1307 // Specify StringComparison
-                this.ExpressionText = $"=`{stringOrExpression.Replace("`", "\\`")}`";
-#pragma warning restore CA1307 // Specify StringComparison
+                this.ExpressionText = $"=`{stringOrExpression.Replace("`", "\\`",  StringComparison.Ordinal)}`";
                 return;
             }
 

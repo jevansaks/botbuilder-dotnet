@@ -29,9 +29,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             {
                 if (args[0] is string string0 && args[1] is string string1)
                 {
-#pragma warning disable CA1307 // Specify StringComparison
-                    found = string0.Contains(string1);
-#pragma warning restore CA1307 // Specify StringComparison
+                    found = string0.Contains(string1, System.StringComparison.Ordinal);
                 }
                 else if (FunctionUtils.TryParseList(args[0], out IList ilist))
                 {

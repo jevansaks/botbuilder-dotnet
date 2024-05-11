@@ -212,15 +212,11 @@ namespace AdaptiveExpressions
                 var text = context.GetText();
                 if (text.StartsWith("'", StringComparison.Ordinal) && text.EndsWith("'", StringComparison.Ordinal))
                 {
-#pragma warning disable CA1307 // Specify StringComparison
-                    text = text.Substring(1, text.Length - 2).Replace("\\'", "'");
-#pragma warning restore CA1307 // Specify StringComparison
+                    text = text.Substring(1, text.Length - 2).Replace("\\'", "'", StringComparison.Ordinal);
                 }
                 else if (text.StartsWith("\"", StringComparison.Ordinal) && text.EndsWith("\"", StringComparison.Ordinal))
                 {
-#pragma warning disable CA1307 // Specify StringComparison
-                    text = text.Substring(1, text.Length - 2).Replace("\\\"", "\"");
-#pragma warning restore CA1307 // Specify StringComparison
+                    text = text.Substring(1, text.Length - 2).Replace("\\\"", "\"", StringComparison.Ordinal);
                 }
                 else
                 {
@@ -272,9 +268,7 @@ namespace AdaptiveExpressions
                                 children.Add(Expression.Parse(expressionString, _lookupFunction));
                                 break;
                             case ExpressionAntlrParser.ESCAPE_CHARACTER:
-#pragma warning disable CA1307 // Specify StringComparison
-                                children.Add(Expression.ConstantExpression(node.GetText().Replace("\\`", "`").Replace("\\$", "$")));
-#pragma warning restore CA1307 // Specify StringComparison
+                                children.Add(Expression.ConstantExpression(node.GetText().Replace("\\`", "`", StringComparison.Ordinal).Replace("\\$", "$", StringComparison.Ordinal)));
                                 break;
                             default:
                                 break;

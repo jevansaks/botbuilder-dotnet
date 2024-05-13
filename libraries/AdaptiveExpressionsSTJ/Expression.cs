@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using AdaptiveExpressions.Converters;
 using AdaptiveExpressions.Memory;
@@ -523,6 +524,18 @@ namespace AdaptiveExpressions
         /// <summary>
         /// Evaluate the expression.
         /// </summary>
+        /// <param name="state">
+        /// Global state to evaluate accessor expressions against.  Can be <see cref="System.Collections.Generic.IDictionary{String, Object}"/>,
+        /// <see cref="System.Collections.IDictionary"/> otherwise reflection is used to access property and then indexer.
+        /// </param>
+        /// <param name="options">Options used in the evaluation. </param>
+        /// <returns>Computed value and an error string.  If the string is non-null, then there was an evaluation error.</returns>
+        public (object value, string error) TryEvaluate(JsonNode state, Options options = null)
+            => this.TryEvaluate<object>(new JsonNodeMemory(state), options);
+
+        /// <summary>
+        /// Evaluate the expression.
+        /// </summary>
         /// <typeparam name="T">type of result of the expression.</typeparam>
         /// <param name="state">
         /// Global state to evaluate accessor expressions against.  Can be <see cref="System.Collections.Generic.IDictionary{String, Object}"/>,
@@ -534,6 +547,20 @@ namespace AdaptiveExpressions
         [RequiresDynamicCode("MemoryFactory uses reflection, use overloads that take IMemory only")]
         public (T value, string error) TryEvaluate<T>(object state, Options options = null)
         => this.TryEvaluate<T>(MemoryFactory.Create(state), options);
+
+        /// <summary>
+        /// Evaluate the expression.
+        /// </summary>
+        /// <typeparam name="T">type of result of the expression.</typeparam>
+        /// <param name="state">
+        /// Global state to evaluate accessor expressions against.  Can be <see cref="System.Collections.Generic.IDictionary{String, Object}"/>,
+        /// <see cref="System.Collections.IDictionary"/> otherwise reflection is used to access property and then indexer.
+        /// </param>
+        /// <param name="serializerContext">serializerContext to support conversions to T.</param>
+        /// <param name="options">Options used in the evaluation. </param>
+        /// <returns>Computed value and an error string.  If the string is non-null, then there was an evaluation error.</returns>
+        public (T value, string error) TryEvaluate<T>(JsonNode state, JsonSerializerContext serializerContext, Options options = null)
+        => this.TryEvaluate<T>(new JsonNodeMemory(state, serializerContext), options);
 
         /// <summary>
         /// Evaluate the expression.

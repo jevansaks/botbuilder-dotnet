@@ -20,4 +20,6 @@ Implementation within and APIs on AdaptiveExpressions that would have needed to 
 
 ### Testing AOT mode
 
-It's difficult to publish & test component in AOT compilation mode, so in general for testing components in AOT mode we just turn on AOT warnings and ensure that the tests and product code are AOT-warning free to convince ourselves that the component will behave correctly when compiled as AOT with trimming on.
+It's difficult to publish & test component in AOT compilation mode, so for testing components in AOT mode we turn on AOT warnings and ensure that the tests and product code are AOT-warning free to convince ourselves that the component will behave correctly when compiled as AOT with trimming on.
+
+AdaptiveExpressionsSTJ.Tests are using some of the AOT modes but still test SimpleObjectMemory paths and other non-AOT compatible modes. AdaptiveExpressionsSTJ.AOT.Tests is a copy of most of the tests from AdaptiveExpressionsSTJ.Tests but rewritten to be going through exclusively AOT-compatible modes. Functionally this means only testing against the JsonNodeMemory backing implementation and thus some of the round-trip tests aren't particularly interesting but they remain to show others how to convert such code in the future.

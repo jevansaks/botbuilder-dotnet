@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using AdaptiveExpressions.Memory;
 using Microsoft.Win32.SafeHandles;
@@ -88,6 +89,7 @@ namespace AdaptiveExpressions.Properties
         /// <value>
         /// The JsonTypeInfo for serializing this type.
         /// </value>
+        [JsonIgnore]
         public JsonTypeInfo ValueJsonTypeInfo { get; private set; }
 
         /// <summary>
@@ -221,11 +223,22 @@ namespace AdaptiveExpressions.Properties
         /// </summary>
         /// <param name="data">data to use for expression binding.</param>
         /// <returns>value.</returns>
-        [RequiresDynamicCode("Use overload of TryGetValue that takes IMemory")]
-        [RequiresUnreferencedCode("Use overload of TryGetValue that takes IMemory")]
+        [RequiresDynamicCode("Use overload of TryGetValue that takes IMemory or JsonNode")]
+        [RequiresUnreferencedCode("Use overload of TryGetValue that takes IMemory or JsonNode")]
         public (T Value, string Error) TryGetValue(object data)
         {
             return TryGetValue(MemoryFactory.Create(data));
+        }
+
+        /// <summary>
+        /// Try to Get the value.
+        /// </summary>
+        /// <param name="data">data to use for expression binding.</param>
+        /// <param name="serializerContext">serializerContext to do type conversions to T.</param>
+        /// <returns>value.</returns>
+        public (T Value, string Error) TryGetValue(JsonNode data, JsonSerializerContext serializerContext)
+        {
+            return TryGetValue(new JsonNodeMemory(data, serializerContext));
         }
 
         /// <summary>

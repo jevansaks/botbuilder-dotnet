@@ -18,19 +18,32 @@ namespace AdaptiveExpressions.Memory
     public partial class JsonNodeMemory : IMemory
     {
         private JsonNode _root = null;
+        private JsonSerializerContext _serializerContext = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonNodeMemory"/> class.
         /// </summary>
         /// <param name="root">The object to wrap.</param>
-        public JsonNodeMemory(JsonNode root)
+        /// <param name="serializerContext">Optional serializerContext to support TryEvaluate<![CDATA[<T>]]> overloads.</param>
+        public JsonNodeMemory(JsonNode root, JsonSerializerContext serializerContext = null)
         {
             _root = root;
+            _serializerContext = serializerContext;
         }
 
         /// <inheritdoc/>
         public object ConvertTo(Type type, object value)
         {
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (_serializerContext != null)
+            {
+                return JsonSerializer.Deserialize(JsonSerializer.Serialize(value, value.GetType(), _serializerContext), type, _serializerContext);
+            }
+
             throw new NotImplementedException();
         }
 

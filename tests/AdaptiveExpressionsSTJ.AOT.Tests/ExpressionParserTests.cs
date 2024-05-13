@@ -1374,15 +1374,18 @@ namespace AdaptiveExpressions.Tests
         [Fact]
         public void TestAccumulatePath()
         {
-            var memory = new SimpleObjectMemory(new
+            var memory = new JsonNodeMemory(new JsonObject
             {
-                f = "foo",
-                b = "bar",
-                z = new
-                {
-                    z = "zar"
+                { "f", "foo" },
+                { "b",  "bar" },
+                { 
+                    "z",
+                    new JsonObject
+                    {
+                        { "z", "zar" }
+                    }
                 },
-                n = 2
+                { "n", 2 }
             });
 
             // normal case, note, we doesn't append a " yet
@@ -1426,7 +1429,7 @@ namespace AdaptiveExpressions.Tests
         [Fact]
         public void TestEvaluationOptions()
         {
-            var mockMemory = new Dictionary<string, object>();
+            var mockMemory = new JsonNodeMemory(new JsonObject());
 
             var options = new Options
             {
@@ -1505,9 +1508,9 @@ namespace AdaptiveExpressions.Tests
                 ["d"] = "d"
             };
 
-            sM.Push(new SimpleObjectMemory(jObj1));
-            sM.Push(new SimpleObjectMemory(jObj2));
-            sM.Push(new SimpleObjectMemory(jObj3));
+            sM.Push(new JsonNodeMemory(jObj1));
+            sM.Push(new JsonNodeMemory(jObj2));
+            sM.Push(new JsonNodeMemory(jObj3));
 
             // Achieve value from stack memory
             var (value, error) = Expression.Parse("d").TryEvaluate(sM);
@@ -1532,15 +1535,15 @@ namespace AdaptiveExpressions.Tests
             Expression.Functions.Add(
                 functionName,
                 new NumericEvaluator(functionName, (args) => (int)args[0] + (int)args[1]));
-            var (result, error) = Expression.Parse("Math.sum(1, 2, 3)").TryEvaluate((IMemory)null);
+            var (result, error) = Expression.Parse("Math.sum(1, 2, 3)").TryEvaluate((JsonNode)null);
             Assert.Equal(6, result);
             Assert.Null(error);
         }
 
         private void AssertResult<T>(string text, T expected)
         {
-            var memory = new object();
-            var (result, error) = Expression.Parse(text).TryEvaluate<T>(memory);
+            var memory = new JsonObject();
+            var (result, error) = Expression.Parse(text).TryEvaluate<T>((JsonNode)memory, ParserTestSerializerContext.Default);
             Assert.Equal(expected, result);
             Assert.Null(error);
         }

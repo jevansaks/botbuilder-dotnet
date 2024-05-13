@@ -636,8 +636,6 @@ namespace AdaptiveExpressions
                     return (default(T), error);
                 }
 
-                // TODO: Alternative: this could call back to IMemory to convert
-                //return (state.Convert(result), null);
                 return ((T)state.ConvertTo(typeof(T), result), error);
             }
 #pragma warning disable CA1031 // Do not catch general exception types (just return an error)

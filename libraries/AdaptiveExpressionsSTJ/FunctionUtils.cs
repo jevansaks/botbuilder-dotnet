@@ -1633,15 +1633,6 @@ namespace AdaptiveExpressions
             return Encoding.UTF8.GetBytes(strToConvert);
         }
 
-        //internal static JsonNode ConvertToJsonNode(object value)
-        //{
-        //    /* TODO: A couple options: 
-        //     * 1. Don't support this (require TryEvaluate to return a small set of known types), 
-        //     * 2. Make ConvertToJsonNode and similar calls a method on IMemory so callers have to do the conversion
-        //    */
-        //    return value == null ? null : JsonSerializer.SerializeToNode(value);
-        //}
-
         // collection functions
 
         [SuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "AOT aware callers will not need us to call JsonSerializer")]

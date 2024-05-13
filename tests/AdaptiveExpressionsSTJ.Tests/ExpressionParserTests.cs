@@ -1356,7 +1356,7 @@ namespace AdaptiveExpressions.Tests
                 return;
             }
             
-            var (actual, msg) = parsed.TryEvaluate(new JsonObjectMemory(jsonScope));
+            var (actual, msg) = parsed.TryEvaluate(new JsonNodeMemory(jsonScope));
             Assert.Null(msg);
             if (expected is Func<string> func)
             {

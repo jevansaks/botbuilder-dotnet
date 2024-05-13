@@ -15,15 +15,15 @@ namespace AdaptiveExpressions.Memory
     /// <summary>
     /// Implementation of <see cref="IMemory"/> over JsonObject.
     /// </summary>
-    public partial class JsonObjectMemory : IMemory
+    public partial class JsonNodeMemory : IMemory
     {
         private JsonNode _root = null;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="JsonObjectMemory"/> class.
+        /// Initializes a new instance of the <see cref="JsonNodeMemory"/> class.
         /// </summary>
         /// <param name="root">The object to wrap.</param>
-        public JsonObjectMemory(JsonNode root)
+        public JsonNodeMemory(JsonNode root)
         {
             _root = root;
         }
@@ -39,7 +39,7 @@ namespace AdaptiveExpressions.Memory
         {
             if (value is JsonNode jnode)
             {
-                return new JsonObjectMemory(jnode);
+                return new JsonNodeMemory(jnode);
             }
             else if (value is List<object> 
                 || value is List<JsonNode>
@@ -48,11 +48,11 @@ namespace AdaptiveExpressions.Memory
                 || value is Dictionary<string, JsonNode>
                 || value is Dictionary<string, object>)
             {
-                return new JsonObjectMemory(ConvertToJsonNode(value));
+                return new JsonNodeMemory(ConvertToJsonNode(value));
             }
             else if (value == null)
             {
-                return new JsonObjectMemory(null);
+                return new JsonNodeMemory(null);
             }
 
             throw new InvalidOperationException("Expected JsonNode");

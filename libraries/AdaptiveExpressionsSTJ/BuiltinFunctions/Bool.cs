@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using AdaptiveExpressions.Memory;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -23,7 +24,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
         {
         }
 
-        private static bool Function(IReadOnlyList<object> args)
+        private static bool Function(IReadOnlyList<object> args, IMemory state)
         {
             var arg = args[0];
             if (arg is int @int)

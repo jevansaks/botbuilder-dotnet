@@ -212,11 +212,11 @@ namespace AdaptiveExpressions
                 var text = context.GetText();
                 if (text.StartsWith("'", StringComparison.Ordinal) && text.EndsWith("'", StringComparison.Ordinal))
                 {
-                    text = text.Substring(1, text.Length - 2).Replace("\\'", "'");
+                    text = text.Substring(1, text.Length - 2).Replace("\\'", "'", StringComparison.Ordinal);
                 }
                 else if (text.StartsWith("\"", StringComparison.Ordinal) && text.EndsWith("\"", StringComparison.Ordinal))
                 {
-                    text = text.Substring(1, text.Length - 2).Replace("\\\"", "\"");
+                    text = text.Substring(1, text.Length - 2).Replace("\\\"", "\"", StringComparison.Ordinal);
                 }
                 else
                 {
@@ -268,7 +268,7 @@ namespace AdaptiveExpressions
                                 children.Add(Expression.Parse(expressionString, _lookupFunction));
                                 break;
                             case ExpressionAntlrParser.ESCAPE_CHARACTER:
-                                children.Add(Expression.ConstantExpression(node.GetText().Replace("\\`", "`").Replace("\\$", "$")));
+                                children.Add(Expression.ConstantExpression(node.GetText().Replace("\\`", "`", StringComparison.Ordinal).Replace("\\$", "$", StringComparison.Ordinal)));
                                 break;
                             default:
                                 break;

@@ -61,7 +61,7 @@ namespace AdaptiveExpressions
             var assembly = Assembly.GetExecutingAssembly();
             string[] names = assembly.GetManifestResourceNames();
 
-            using (var sr = new StreamReader(assembly.GetManifestResourceStream("AdaptiveExpressions.WindowsIanaMapping")))
+            using (var sr = new StreamReader(assembly.GetManifestResourceStream("AdaptiveExpressionsSTJ.WindowsIanaMapping")))
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)

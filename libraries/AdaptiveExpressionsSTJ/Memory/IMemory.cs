@@ -2,6 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.Memory
 {
@@ -32,5 +35,40 @@ namespace AdaptiveExpressions.Memory
         /// </summary>
         /// <returns>A string indicates the version.</returns>
         string Version();
+
+        /// <summary>
+        /// Create an IMemory from an object that was returned from this IMemory's TryGetValue.
+        /// If upgrading from old AdaptiveExpression implementations, return MemoryFactory.Create(value).
+        /// </summary>
+        /// <param name="value">object to wrap.</param>
+        /// <returns>IMemory.</returns>
+        IMemory CreateMemoryFrom(object value);
+
+        /// <summary>
+        /// Serialize a value sourced from this IMemory into a string.
+        /// If upgrading from old AdaptiveExpression implementations, return JsonSerializer.Serialize(value).
+        /// </summary>
+        /// <param name="value">object to serialize.</param>
+        /// <returns>json string.</returns>
+        string JsonSerializeToString(object value);
+
+        /// <summary>
+        /// Serialize a value sourced from this IMemory into a JsonNode.
+        /// If upgrading from old AdaptiveExpression implementations, return value == null ? null : JsonSerializer.SerializeToNode(value).
+        /// </summary>
+        /// <param name="value">object to serialize.</param>
+        /// <returns>json node.</returns>
+        JsonNode SerializeToNode(object value);
+
+        /// <summary>
+        /// When an expression evaluates to an object that is not the exact type TryEvaluate<![CDATA[<T>]]> needs,
+        /// it asks the IMemory to convert the value to the specific type. The return value will be cast to T so it must be
+        /// of the correct type.
+        /// A default implementation can do JsonSerializer.Deserialize(JsonSerializer.SerializeToNode(value), type).
+        /// </summary>
+        /// <param name="type">type to convert to.</param>
+        /// <param name="value">value to convert.</param>
+        /// <returns>value converted to type.</returns>
+        object ConvertTo(Type type, object value);
     }
 }

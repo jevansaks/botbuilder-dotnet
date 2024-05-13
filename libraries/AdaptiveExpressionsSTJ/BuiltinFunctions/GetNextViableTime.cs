@@ -60,7 +60,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
 
                         if (error == null)
                         {
-                            (parsed, error) = FunctionUtils.ParseTimexProperty((args[0] as string).Replace("XX", "00"));
+                            (parsed, error) = FunctionUtils.ParseTimexProperty((args[0] as string).Replace("XX", "00", StringComparison.Ordinal));
                         }
 
                         if (error == null)

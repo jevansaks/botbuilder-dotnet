@@ -35,7 +35,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
                             string newStr = FunctionUtils.ParseStringOrNull(args[2]);
                             if (error == null)
                             {
-                                result = inputStr.Replace(oldStr, newStr);
+                                result = inputStr.Replace(oldStr, newStr, System.StringComparison.Ordinal);
                             }
 
                             return (result, error);

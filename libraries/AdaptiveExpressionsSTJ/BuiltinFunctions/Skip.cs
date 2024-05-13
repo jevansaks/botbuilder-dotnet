@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using AdaptiveExpressions.Memory;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -24,7 +25,7 @@ namespace AdaptiveExpressions.BuiltinFunctions
             FunctionUtils.ValidateOrder(expression, null, ReturnType.Array, ReturnType.Number);
         }
 
-        private static (object value, string error) EvalSkip(Expression expression, object state, Options options)
+        private static (object value, string error) EvalSkip(Expression expression, IMemory state, Options options)
         {
             object result = null;
             string error;

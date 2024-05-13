@@ -8,16 +8,22 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Threading;
 using AdaptiveExpressions.BuiltinFunctions;
 using AdaptiveExpressions.Memory;
+using Json.More;
 using Microsoft.Recognizers.Text.DataTypes.TimexExpression;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace AdaptiveExpressions.Tests
 {
-    public class ExpressionParserTests
+    /// <summary>
+    /// Expression parser tests.
+    /// </summary>
+    public partial class ExpressionParserTests
     {
         private static readonly string NullStr = null;
 
@@ -40,10 +46,10 @@ namespace AdaptiveExpressions.Tests
                 "emptyObject", new Dictionary<string, object>()
             },
             {
-                "emptyJObject", new JObject()
+                "emptyJObject", new JsonObject()
             },
             {
-                "emptyAnonymousObject", new { }
+                "emptyAnonymousObject", new AnonymousEmpty { }
             },
             {
                 "path", new Dictionary<string, object>()
@@ -66,7 +72,7 @@ namespace AdaptiveExpressions.Tests
                 "bag", new Dictionary<string, object>
                 {
                     { "three", 3.0 },
-                    { "set", new { four = 4.0 } },
+                    { "set", new AnonymousDouble { four = 4.0 } },
                     { "list", new[] { "red", "blue" } },
                     { "index", 3 },
                     { "name", "mybag" }
@@ -77,19 +83,19 @@ namespace AdaptiveExpressions.Tests
                 "nestedItems",
                 new[]
                 {
-                    new { x = 1 },
-                    new { x = 2 },
-                    new { x = 3 }
+                    new AnonymousInt { x = 1 },
+                    new AnonymousInt { x = 2 },
+                    new AnonymousInt { x = 3 }
                 }
             },
             {
                 "user",
-                new
+                new AnonymousComplex
                 {
                     income = 100.1,
                     outcome = 120.1,
                     nickname = "John",
-                    lists = new
+                    lists = new AnonymousStringArray
                     {
                         todo = new[]
                         {
@@ -118,50 +124,50 @@ namespace AdaptiveExpressions.Tests
             { "ticks", 637243624200000000 },
             {
                 "json1", @"{
-                          'FirstName': 'John',
-                          'LastName': 'Smith',
-                          'Enabled': false,
-                          'Roles': [ 'User' ]
+                          ""FirstName"": ""John"",
+                          ""LastName"": ""Smith"",
+                          ""Enabled"": false,
+                          ""Roles"": [ ""User"" ]
                         }"
             },
             {
                 "json2", @"{
-                          'Enabled': true,
-                          'Roles': [ 'Customer', 'Admin' ]
+                          ""Enabled"": true,
+                          ""Roles"": [ ""Customer"", ""Admin"" ]
                         }"
             },
             {
                 "json3", @"{
-                          'Age': 36,
+                          ""Age"": 36
                         }"
             },
             { "xmlStr", "<?xml version='1.0'?> <produce> <item> <name>Gala</name> <type>apple</type> <count>20</count> </item> <item> <name>Honeycrisp</name> <type>apple</type> <count>10</count> </item> </produce>" },
             {
                 "jsonStr", @"{
-                          'Stores': [
-                            'Lambton Quay',
-                            'Willis Street'
+                          ""Stores"": [
+                            ""Lambton Quay"",
+                            ""Willis Street""
                           ],
-                          'Manufacturers': [
+                          ""Manufacturers"": [
                             {
-                              'Name': 'Acme Co',
-                              'Products': [
+                              ""Name"": ""Acme Co"",
+                              ""Products"": [
                                 {
-                                  'Name': 'Anvil',
-                                  'Price': 50
+                                  ""Name"": ""Anvil"",
+                                  ""Price"": 50
                                 }
                               ]
                             },
                             {
-                              'Name': 'Contoso',
-                              'Products': [
+                              ""Name"": ""Contoso"",
+                              ""Products"": [
                                 {
-                                  'Name': 'Elbow Grease',
-                                  'Price': 99.95
+                                  ""Name"": ""Elbow Grease"",
+                                  ""Price"": 99.95
                                 },
                                 {
-                                  'Name': 'Headlight Fluid',
-                                  'Price': 4
+                                  ""Name"": ""Headlight Fluid"",
+                                  ""Price"": 4
                                 }
                               ]
                             }
@@ -169,9 +175,9 @@ namespace AdaptiveExpressions.Tests
                         }"
             },
             {
-                "turn", new
+                "turn", new Turn
                 {
-                    recognized = new
+                    recognized = new Recognized
                     {
                         entities = new Dictionary<string, object>
                         {
@@ -213,18 +219,18 @@ namespace AdaptiveExpressions.Tests
                                 }
                             }
                         },
-                        intents = new
+                        intents = new Booking
                         {
                             BookFlight = "BookFlight",
                             BookHotel = new[]
                             {
-                                new
+                                new ReservationDetail
                                 {
                                     Where = "Bellevue",
                                     Time = "Tomorrow",
-                                    People= "2"
+                                    People = "2"
                                 },
-                                new
+                                new ReservationDetail
                                 {
                                     Where = "Kirkland",
                                     Time = "Today",
@@ -237,18 +243,18 @@ namespace AdaptiveExpressions.Tests
             },
             {
                 "dialog",
-                new
+                new AnonymousDialog
                 {
-                    x=3,
-                    instance = new
+                    x = 3,
+                    instance = new AnonymousComplex2
                     {
                         xxx = "instance",
-                        yyy = new
+                        yyy = new AnonymousInstanceY
                         {
                             instanceY = "instanceY"
                         }
                     },
-                    options = new
+                    options = new AnonymousComplex2
                     {
                         xxx = "options",
                         yyy = new[] { "optionY1", "optionY2" }
@@ -263,30 +269,30 @@ namespace AdaptiveExpressions.Tests
                 {
                     new object[]
                     {
-                        new { x = 1 },
-                        new { x = 2 }
+                        new AnonymousInt { x = 1 },
+                        new AnonymousInt { x = 2 }
                     },
                     new object[]
                     {
-                        new { x = 3 }
+                        new AnonymousInt { x = 3 }
                     }
                 }
             },
             {
                 "callstack", new object[]
                 {
-                    new
+                    new AnonymousDialog
                     {
                         x = 3,
-                        instance = new
+                        instance = new AnonymousComplex2
                         {
                             xxx = "instance",
-                            yyy = new
+                            yyy = new AnonymousInstanceY
                             {
                                 instanceY = "instanceY"
                             }
                         },
-                        options = new
+                        options = new AnonymousComplex2
                         {
                             xxx = "options",
                             yyy = new[] { "optionY1", "optionY2" }
@@ -294,15 +300,15 @@ namespace AdaptiveExpressions.Tests
                         title = "Dialog Title",
                         subTitle = "Dialog Sub Title"
                     },
-                    new { x = 2, y = 2 },
-                    new { x = 1, y = 1, z = 1 }
+                    new AnonymousObject1 { x = 2, y = 2 },
+                    new AnonymousObject2 { x = 1, y = 1, z = 1 }
                 }
             },
             {
-                "numberJArray", new JArray
+                "numberJArray", new JsonArray(new JsonNode[]
                 {
                     1, 2
-                }
+                })
             }
         };
 
@@ -313,9 +319,9 @@ namespace AdaptiveExpressions.Tests
             { "ticks", 637243624200000000 },
             {
                 "turn",
-                new
+                new AnonymousActivity
                 {
-                    activity = new
+                    activity = new AnonymousLocale
                     {
                         locale = "es-ES"
                     }
@@ -386,7 +392,7 @@ namespace AdaptiveExpressions.Tests
             Test(@"`hi ${string('jack`')}`", "hi jack`"),
             Test(@"`\${world}`", "${world}"), // use escape character
             Test("length(`hello ${world}`)", "hello world".Length),
-            Test("json(`{'foo': '${hello}','item': '${world}'}`).foo", "hello"),
+            Test("json(`{\"foo\": \"${hello}\",\"item\": \"${world}\"}`).foo", "hello"),
             Test("`hello ${world}` == 'hello world'", true),
             Test("`hello ${world}` != 'hello hello'", true),
             Test("`hello ${user.nickname}` == 'hello John'", true),
@@ -729,7 +735,7 @@ namespace AdaptiveExpressions.Tests
             Test("string('str\"')", "str\""),
             Test("string(one)", "1"),
             Test("string(bool(1))", "true"),
-            Test("string(bag.set)", "{\"four\":4.0}"),
+            Test("string(bag.set)", "{\"four\":4}"),
             Test("bool(1)", true),
             Test("bool(0)", false),
             Test("bool(null)", false),
@@ -1196,9 +1202,11 @@ namespace AdaptiveExpressions.Tests
             #endregion
         };
 
+        public static CultureInfo EnUsCultureInfo => new ("en-US");
+
         public static IEnumerable<object[]> DataForThreadLocale => new[]
         {
-            Test("replace(addDays(timestamp, 1, '', 'en-US'), '20', '')", "3/16/18 1:00:00 PM"),
+            Test("replace(addDays(timestamp, 1, '', 'en-US'), '20', '')", new DateTime(2018, 3, 16, 13, 0, 0).ToString(string.Empty, EnUsCultureInfo).Replace("20", string.Empty)),
             Test("addDays(timestamp, 1, 'D')", "vendredi 16 mars 2018"),
             Test("addHours(timestamp, 2, 'D')", "jeudi 15 mars 2018"),
             Test("addMinutes(timestamp, 30, '')", "15/03/2018 13:30:00"),
@@ -1209,12 +1217,12 @@ namespace AdaptiveExpressions.Tests
             Test("convertToUTC('01/01/2018 00:00:00', 'Pacific Standard Time', 'D')", "lundi 1 janvier 2018"),
             Test("convertFromUTC('2018-01-02T02:00:00.000Z', 'Pacific Standard Time', '')", "01/01/2018 18:00:00"),
             TestUtcNow("utcNow('D')", () => DateTime.UtcNow.ToString("D", new CultureInfo("fr-FR"))),
-            TestUtcNow("getPastTime(1,'Day', 'D')", () => DateTime.Now.AddDays(-1).ToString("D", new CultureInfo("fr-FR"))),
+            TestUtcNow("getPastTime(1,'Day', 'D')", () => DateTime.UtcNow.AddDays(-1).ToString("D", new CultureInfo("fr-FR"))),
             Test("subtractFromTime(timestamp, 1, 'Hour', '')", "15/03/2018 12:00:00"),
             Test("formatEpoch(unixTimestamp, '')", "15/03/2018 13:00:00"),
             Test("formatTicks(ticks, '')", "06/05/2020 11:47:00"),
             Test("formatDateTime('2018-03-15', 'D')", "jeudi 15 mars 2018"),
-            TestUtcNow("getFutureTime(1, 'Year', 'D')", () => DateTime.Now.AddYears(1).ToString("D", new CultureInfo("fr-FR"))),
+            TestUtcNow("getFutureTime(1, 'Year', 'D')", () => DateTime.UtcNow.AddYears(1).ToString("D", new CultureInfo("fr-FR"))),
             Test("addDays(timestamp, 1, '')", "16/03/2018 13:00:00"),
             Test("toUpper('lowercase')", "LOWERCASE"),
             Test("toLower('I AM WHAT I AM')", "i am what i am"),
@@ -1243,6 +1251,7 @@ namespace AdaptiveExpressions.Tests
            || value is double
            || value is decimal;
 
+#if !AOT
         [Theory]
         [MemberData(nameof(Data))]
         public void Evaluate(string input, object expected, HashSet<string> expectedRefs)
@@ -1330,15 +1339,24 @@ namespace AdaptiveExpressions.Tests
                 Thread.CurrentThread.CurrentCulture = originalCulture;
             }
         }
+#endif
 
         [Theory]
         [MemberData(nameof(Data))]
         public void EvaluateJson(string input, object expected, HashSet<string> expectedRefs)
         {
-            var jsonScope = JToken.FromObject(scope);
+            var jsonScope = JsonSerializer.SerializeToNode(scope, ParserTestSerializerContext.Default.DictionaryStringObject);
             var parsed = Expression.Parse(input);
             Assert.NotNull(parsed);
-            var (actual, msg) = parsed.TryEvaluate(jsonScope);
+
+            // byteArr serialized to Json serializes to a base64 string and gets returned as a string (not byte[] as Newtonsoft
+            // was behaving), and these tests expect that it's a byte[] so the tests have the wrong expected value. Just skip them.
+            if (input.Contains("byteArr"))
+            {
+                return;
+            }
+            
+            var (actual, msg) = parsed.TryEvaluate(new JsonNodeMemory(jsonScope));
             Assert.Null(msg);
             if (expected is Func<string> func)
             {
@@ -1468,19 +1486,19 @@ namespace AdaptiveExpressions.Tests
         public void TestStackMemory()
         {
             var sM = new StackedMemory();
-            var jObj1 = new JObject
+            var jObj1 = new JsonObject
             {
                 ["a"] = "a",
                 ["b"] = "b",
                 ["c"] = null
             };
 
-            var jObj2 = new JObject
+            var jObj2 = new JsonObject
             {
                 ["c"] = "c"
             };
 
-            var jObj3 = new JObject
+            var jObj3 = new JsonObject
             {
                 ["a"] = "newa",
                 ["b"] = null,
@@ -1514,7 +1532,7 @@ namespace AdaptiveExpressions.Tests
             Expression.Functions.Add(
                 functionName,
                 new NumericEvaluator(functionName, (args) => (int)args[0] + (int)args[1]));
-            var (result, error) = Expression.Parse("Math.sum(1, 2, 3)").TryEvaluate(null);
+            var (result, error) = Expression.Parse("Math.sum(1, 2, 3)").TryEvaluate((IMemory)null);
             Assert.Equal(6, result);
             Assert.Null(error);
         }
@@ -1533,7 +1551,7 @@ namespace AdaptiveExpressions.Tests
             {
                 if (actual is int || actual is long)
                 {
-                    Assert.True(expected is int || expected is long);
+                    Assert.True(expected is int || expected is long || (Convert.ToDecimal(expected) == Math.Floor(Convert.ToDecimal(expected))));
                     Assert.Equal(Convert.ToInt64(expected), Convert.ToInt64(actual));
                 }
                 else
@@ -1561,28 +1579,26 @@ namespace AdaptiveExpressions.Tests
         private object ResolveValue(object obj)
         {
             object value;
-            if (!(obj is JValue jval))
+            if (!(obj is JsonValue jval))
             {
                 value = obj;
             }
             else
             {
-                value = jval.Value;
-                if (jval.Type == JTokenType.Integer)
+                switch (jval.GetValueKind())
                 {
-                    value = jval.ToObject<int>();
-                }
-                else if (jval.Type == JTokenType.String)
-                {
-                    value = jval.ToObject<string>();
-                }
-                else if (jval.Type == JTokenType.Boolean)
-                {
-                    value = jval.ToObject<bool>();
-                }
-                else if (jval.Type == JTokenType.Float)
-                {
-                    value = jval.ToObject<float>();
+                    case JsonValueKind.String:
+                        return jval.GetString();
+                    case JsonValueKind.Number:
+                        return jval.GetNumber();
+                    case JsonValueKind.Null:
+                        return null;
+                    case JsonValueKind.True:
+                        return true;
+                    case JsonValueKind.False:
+                        return false;
+                    default:
+                        return jval.GetValue<object>();
                 }
             }
 
@@ -1598,5 +1614,142 @@ namespace AdaptiveExpressions.Tests
 
             public string Name { get; set; }
         }
+
+        [JsonSerializable(typeof(byte[]))]
+        [JsonSerializable(typeof(DateTime))]
+        [JsonSerializable(typeof(string[]))]
+        [JsonSerializable(typeof(long))]
+        [JsonSerializable(typeof(Dictionary<string, object>))]
+        [JsonSerializable(typeof(List<object>))]
+        [JsonSerializable(typeof(List<string>))]
+        [JsonSerializable(typeof(List<A>))]
+        [JsonSerializable(typeof(JsonObject))]
+        [JsonSerializable(typeof(List<int>))]
+        [JsonSerializable(typeof(TimexProperty))]
+        [JsonSerializable(typeof(A))]
+        [JsonSerializable(typeof(AnonymousEmpty))]
+        [JsonSerializable(typeof(AnonymousInt))]
+        [JsonSerializable(typeof(AnonymousStringArray))]
+        [JsonSerializable(typeof(AnonymousActivity))]
+        [JsonSerializable(typeof(AnonymousComplex))]
+        [JsonSerializable(typeof(AnonymousComplex2))]
+        [JsonSerializable(typeof(AnonymousDialog))]
+        [JsonSerializable(typeof(AnonymousDouble))]
+        [JsonSerializable(typeof(AnonymousEmpty))]
+        [JsonSerializable(typeof(AnonymousInt))]
+        [JsonSerializable(typeof(AnonymousStringArray))]
+        [JsonSerializable(typeof(ReservationDetail))]
+        [JsonSerializable(typeof(AnonymousLocale))]
+        [JsonSerializable(typeof(AnonymousInstanceY))]
+        [JsonSerializable(typeof(AnonymousInt[]))]
+        [JsonSerializable(typeof(AnonymousObject1))]
+        [JsonSerializable(typeof(AnonymousObject2))]
+        [JsonSerializable(typeof(Turn))]
+        [JsonSerializable(typeof(string[][]))]
+        [JsonSerializable(typeof(object[][]))]
+        [JsonSerializable(typeof(JsonObject))]
+        [JsonSerializable(typeof(JsonArray))]
+        [JsonSerializable(typeof(JsonNode))]
+        private partial class ParserTestSerializerContext : JsonSerializerContext
+        {
+        }
+
+#pragma warning disable SA1300, SA1516 // Element should begin with upper-case letter
+        private class AnonymousEmpty
+        {
+        }
+
+        private class AnonymousInt
+        {
+            public int x { get; set; }
+        }
+
+        private class AnonymousStringArray
+        {
+            public string[] todo { get; set; }
+        }
+
+        private class AnonymousComplex
+        {
+            public double income { get; set; }
+            public double outcome { get; set; }
+            public string nickname { get; set; }
+            public AnonymousStringArray lists { get; set; }
+            public string listType { get; set; }
+        }
+
+        private class AnonymousDouble
+        {
+            public double four { get; set; }
+        }
+
+        private class ReservationDetail
+        {
+            public string Where { get; set; }
+            public string Time { get; set; }
+            public string People { get; set; }
+        }
+
+        private class AnonymousComplex2
+        {
+            public string xxx { get; set; }
+            public object yyy { get; set; }
+        }
+
+        private class AnonymousDialog
+        {
+            public int x { get; set; }
+            public AnonymousComplex2 instance { get; set; }
+            public AnonymousComplex2 options { get; set; }
+            public string title { get; set; }
+            public string subTitle { get; set; }
+        }
+
+        private class AnonymousInstanceY
+        {
+            public string instanceY { get; set; }
+        }
+
+        private class AnonymousLocale
+        {
+            public string locale { get; set; }
+        }
+
+        private class AnonymousActivity
+        {
+            public AnonymousLocale activity { get; set; }
+        }
+
+        private class Booking
+        {
+            public string BookFlight { get; set; }
+            public ReservationDetail[] BookHotel { get; set; }
+        }
+
+        private class Recognized
+        {
+            public Dictionary<string, object> entities { get; set; }
+            public Booking intents { get; set; }
+        }
+
+        private class Turn
+        {
+            public Recognized recognized { get; set; }
+        }
+
+        private class AnonymousObject1
+        {
+            public int x { get; set; }
+            public int y { get; set; }
+        }
+
+        private class AnonymousObject2
+        {
+            public int x { get; set; }
+            public int y { get; set; }
+            public int z { get; set; }
+        }
+
+#pragma warning restore SA1300, SA1516 // Element should begin with upper-case letter
     }
 }

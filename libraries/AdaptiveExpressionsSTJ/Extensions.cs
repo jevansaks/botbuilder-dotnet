@@ -47,6 +47,8 @@ namespace AdaptiveExpressions
         /// <returns>True if numeric type.</returns>
         public static bool IsInteger(this object value)
         {
+            // Integers in System.Text.Json can be represented a few different ways, and per spec
+            // a decimal could be an integer too.
             value = FunctionUtils.ResolveValue(value);
             return value is sbyte
             || value is byte
@@ -55,7 +57,8 @@ namespace AdaptiveExpressions
             || value is int
             || value is uint
             || value is long
-            || value is ulong;
+            || value is ulong
+            || (value is decimal d && d == Math.Floor(d));
         }
 
         /// <summary>
@@ -100,5 +103,22 @@ namespace AdaptiveExpressions
                 return _random.Next(min, max);
             }
         }
+
+        // Polyfill string methods for netstandard that net8.0 warns about. The culture defaults are what the implementation
+        // used to use, so these are safe for these callers.
+#if NETSTANDARD
+#pragma warning disable CA1801 // Unused parameters (this is intentional)
+        internal static string Replace(this string str, string oldValue, string newValue, StringComparison comparisonType)
+        {
+            return str.Replace(oldValue, newValue);
+        }
+
+        internal static bool Contains(this string str, string value, StringComparison comparisonType)
+        {
+            return str.Contains(value);
+        }
+
+#pragma warning restore CA1801 
+#endif
     }
 }

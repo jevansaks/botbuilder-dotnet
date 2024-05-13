@@ -63,7 +63,7 @@ namespace AdaptiveExpressions
             }
             else if (Value is string value)
             {
-                var result = value.Replace(@"\", @"\\");
+                var result = value.Replace(@"\", @"\\", StringComparison.Ordinal);
 
                 result = _singleQuotRegex.Replace(result, new MatchEvaluator(m =>
                 {

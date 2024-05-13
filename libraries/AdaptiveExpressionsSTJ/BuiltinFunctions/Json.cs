@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 
 using System.IO;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace AdaptiveExpressions.BuiltinFunctions
 {
@@ -29,19 +29,13 @@ namespace AdaptiveExpressions.BuiltinFunctions
                         {
                             object result = null;
                             string error = null;
-                            using (var textReader = new StringReader(args[0].ToString()))
+                            try
                             {
-                                using (var jsonReader = new JsonTextReader(textReader) { DateParseHandling = DateParseHandling.None, MaxDepth = null })
-                                {
-                                    try
-                                    {
-                                        result = JToken.ReadFrom(jsonReader);
-                                    }
-                                    catch (JsonReaderException err)
-                                    {
-                                        error = err.Message;
-                                    }
-                                }
+                                result = JsonObject.Parse(args[0].ToString());
+                            }
+                            catch (JsonException err)
+                            {
+                                error = err.Message;
                             }
 
                             return (result, error);
